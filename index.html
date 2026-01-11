@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Artist Portfolio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;600&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="nav">
+    <div class="nav__brand">Zara Shahi</div>
+    <nav class="nav__links">
+      <a href="#works">Portfolio</a>
+      <a href="#workshops">Workshops</a>
+      <a href="#bio">About</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </header>
+
+  <main>
+    <div id="top"></div>
+    <section class="statement reveal" id="bio">
+      <div class="statement__layout">
+        <div class="statement__image">
+          <img src="./Zara_Shahi.jpg" alt="Portrait with textile installation" />
+        </div>
+        <div class="statement__body">
+          <div class="statement__name">Zara Shahi</div>
+          <div class="statement__line" aria-hidden="true"></div>
+          <div class="statement__content">
+            <h2 class="visually-hidden">Artist Statement</h2>
+            <p class="statement__text statement__text--intro">Art has always been my way of navigating the mind, a conversation between what I carry and what making allows.</p>
+          </div>
+          <div class="statement__line" aria-hidden="true"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel panel--dark reveal" id="works">
+      <div class="panel__content">
+        <div class="panel__tag">Selected Works</div>
+      </div>
+      <div class="grid">
+        <article class="card">
+          <div class="card__media">
+            <img src="./Hold_It_Fibers.jpg" alt="Placeholder work" />
+          </div>
+          <div class="card__overlay">Work Title — Year</div>
+        </article>
+        <article class="card">
+          <div class="card__media">
+            <img src="./Zara-Shahi_Wound.jpg" alt="Placeholder work" />
+          </div>
+          <div class="card__overlay">Work Title — Year</div>
+        </article>
+        <article class="card">
+          <div class="card__media">
+            <img src="./DSCF8078.jpg" alt="Placeholder work" />
+          </div>
+          <div class="card__overlay">Work Title — Year</div>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel panel--dark reveal" id="contact">
+      <div class="panel__content">
+        <div class="panel__tag">Contact</div>
+        <div class="contact">
+          <div class="contact__line">
+            <div class="contact__primary">
+              <div class="contact__item">
+                <svg class="contact__inline-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M4 7.5h16v9H4z" stroke="currentColor" stroke-width="1.6" fill="none" />
+                  <path d="M4 7.5l8 6 8-6" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                <a class="contact__link contact__value" href="mailto:imzarashahi@gmail.com">imzarashahi@gmail.com</a>
+              </div>
+              <div class="contact__item">
+                <svg class="contact__inline-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M6.5 4.5l3 1.2-1.1 3.1c1.6 2.8 3.9 5.1 6.7 6.7l3.1-1.1 1.2 3c-1 .9-2.3 1.4-3.7 1.3-6.4-.5-11.7-5.8-12.2-12.2-.1-1.4.4-2.7 1.3-3.7z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                <a class="contact__link contact__value" href="tel:+17746360844">+1 (774) 636-0844</a>
+              </div>
+              <div class="contact__item">
+                <svg class="contact__inline-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 21s6-6.2 6-11a6 6 0 10-12 0c0 4.8 6 11 6 11z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+                  <circle cx="12" cy="10" r="2.6" stroke="currentColor" stroke-width="1.6" fill="none" />
+                </svg>
+                <a class="contact__link contact__value" href="https://maps.google.com/?q=Dartmouth%2C%20MA" target="_blank" rel="noopener">Dartmouth, MA</a>
+              </div>
+            </div>
+            <div class="contact__social">
+              <a class="contact__social-link" href="https://instagram.com/zara.madeart" target="_blank" rel="noopener" aria-label="Instagram">
+                <svg class="contact__social-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <rect x="5.2" y="5.2" width="13.6" height="13.6" rx="4" stroke="currentColor" stroke-width="1.6" fill="none" />
+                  <circle cx="12" cy="12" r="3.1" stroke="currentColor" stroke-width="1.6" fill="none" />
+                  <circle cx="16.4" cy="7.6" r="1" fill="currentColor" />
+                </svg>
+                <span class="visually-hidden">Instagram</span>
+              </a>
+              <a class="contact__social-link" href="https://www.linkedin.com/in/zara-shahi" target="_blank" rel="noopener" aria-label="LinkedIn">
+                <svg class="contact__social-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <rect x="5.2" y="5.2" width="13.6" height="13.6" rx="3" stroke="currentColor" stroke-width="1.6" fill="none" />
+                  <path d="M9 11v6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                  <path d="M9 9.2h.2" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                  <path d="M12 17v-3.5c0-1.3.8-2.4 2.2-2.4s2.2 1.1 2.2 2.4V17" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                <span class="visually-hidden">LinkedIn</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div>© Your Name — Year</div>
+    <div class="footer__links">
+      <a href="#top">Back to top</a>
+      <a href="#works">Portfolio</a>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

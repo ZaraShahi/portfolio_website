@@ -11,9 +11,17 @@
 </head>
 <body>
   <header class="nav">
-    <div class="nav__brand">Zara Shahi</div>
+    <a class="nav__brand" href="index.html">Zara Shahi</a>
     <nav class="nav__links">
-      <a href="#works">Portfolio</a>
+      <div class="nav__dropdown">
+        <button class="nav__dropdown-trigger" type="button">Portfolio</button>
+        <div class="nav__menu" role="menu" aria-label="Portfolio">
+          <a href="weaving.html" role="menuitem">Weaving</a>
+          <a href="#works" role="menuitem">Photography</a>
+          <a href="#works" role="menuitem">Ceramics</a>
+          <a href="#works" role="menuitem">Video Art</a>
+        </div>
+      </div>
       <a href="#workshops">Workshops</a>
       <a href="#bio">About</a>
       <a href="#contact">Contact</a>
@@ -46,19 +54,19 @@
       <div class="grid">
         <article class="card">
           <div class="card__media">
-            <img src="./Hold_It_Fibers.jpg" alt="Placeholder work" />
+            <img src="./Unforgotten-Memories-1.jpg" alt="Placeholder work" />
           </div>
           <div class="card__overlay">Work Title — Year</div>
         </article>
         <article class="card">
           <div class="card__media">
-            <img src="./Zara-Shahi_Wound.jpg" alt="Placeholder work" />
+            <img src="./IMG_4501-2.jpg" alt="Placeholder work" />
           </div>
           <div class="card__overlay">Work Title — Year</div>
         </article>
         <article class="card">
           <div class="card__media">
-            <img src="./DSCF8078.jpg" alt="Placeholder work" />
+            <img src="./In-Between-2.jpg" alt="Placeholder work" />
           </div>
           <div class="card__overlay">Work Title — Year</div>
         </article>
@@ -118,7 +126,7 @@
   </main>
 
   <footer class="footer">
-    <div>© Your Name — Year</div>
+    <div>© Zara Shahi — 2026</div>
     <div class="footer__links">
       <a href="#top">Back to top</a>
       <a href="#works">Portfolio</a>

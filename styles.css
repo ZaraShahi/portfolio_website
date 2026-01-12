@@ -59,20 +59,24 @@ a {
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  font-size: 1.3rem;
 }
 
 .nav__links {
   display: flex;
   gap: 18px;
   font-size: 0.95rem;
+  align-items: center;
 }
 
-.nav__links a {
+.nav__links a,
+.nav__dropdown-trigger {
   position: relative;
   padding-bottom: 4px;
 }
 
-.nav__links a::after {
+.nav__links a::after,
+.nav__dropdown-trigger::after {
   content: "";
   position: absolute;
   left: 0;
@@ -84,8 +88,72 @@ a {
 }
 
 .nav__links a:hover::after,
-.nav__links a:focus::after {
+.nav__links a:focus::after,
+.nav__dropdown:hover .nav__dropdown-trigger::after,
+.nav__dropdown:focus-within .nav__dropdown-trigger::after {
   width: 100%;
+}
+
+.nav__dropdown {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.nav__dropdown-trigger {
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  cursor: pointer;
+}
+
+.nav__menu {
+  position: absolute;
+  top: calc(100% + 12px);
+  left: 0;
+  display: grid;
+  gap: 8px;
+  padding: 12px 14px;
+  min-width: 180px;
+  background: rgba(255, 253, 247, 0.96);
+  border: 1px solid rgba(64, 52, 42, 0.12);
+  border-radius: 12px;
+  box-shadow: 0 18px 36px rgba(31, 26, 22, 0.12);
+  opacity: 0;
+  transform: translateY(6px);
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.nav__menu::before {
+  content: "";
+  position: absolute;
+  top: -12px;
+  left: 0;
+  right: 0;
+  height: 12px;
+}
+
+.nav__menu a {
+  font-size: 0.88rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: inherit;
+}
+
+.nav__menu a:hover,
+.nav__menu a:focus-visible {
+  color: var(--accent);
+}
+
+.nav__dropdown:hover .nav__menu,
+.nav__dropdown:focus-within .nav__menu,
+.nav__menu:hover {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
 }
 
 .nav.nav--solid {
@@ -224,6 +292,11 @@ h2 {
   color: #3d342c;
 }
 
+#contact .panel__content {
+  max-width: none;
+  width: 100%;
+}
+
 #contact .panel__tag {
   color: #7b7167;
 }
@@ -279,6 +352,33 @@ h2 {
 
 .panel p {
   margin: 0 0 12px;
+}
+
+.portfolio-page {
+  margin-top: var(--nav-height, 0px);
+}
+
+.portfolio-hero {
+  padding: 90px var(--page-gutter) 32px;
+}
+
+.portfolio-hero h1 {
+  margin-bottom: 12px;
+}
+
+.portfolio-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 18px;
+  padding: 24px var(--page-gutter) 96px;
+}
+
+.portfolio-tile {
+  background: #f6efe6;
+  border: 1px solid rgba(64, 52, 42, 0.14);
+  border-radius: 14px;
+  aspect-ratio: 4 / 5;
+  box-shadow: 0 16px 30px rgba(88, 63, 41, 0.12);
 }
 
 .statement {
@@ -472,6 +572,7 @@ h2 {
 
 .contact {
   margin-top: 18px;
+  width: 100%;
 }
 
 .contact__label {
@@ -499,9 +600,10 @@ h2 {
 .contact__primary {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 46px;
   flex-wrap: nowrap;
   white-space: nowrap;
+  flex: 1;
 }
 
 .contact__item {
@@ -557,6 +659,7 @@ h2 {
   display: flex;
   gap: 8px;
   flex-shrink: 0;
+  margin-left: auto;
 }
 
 .footer {

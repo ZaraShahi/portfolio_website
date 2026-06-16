@@ -177,4 +177,33 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener("scroll", toggleNav, { passive: true });
   window.addEventListener("resize", updateNavHeight);
   window.addEventListener("load", updateNavHeight);
+
+  const hoverVideos = document.querySelectorAll(".card__media--video video");
+  hoverVideos.forEach(video => {
+    const card = video.closest(".card");
+    const loopEnd = parseFloat(video.dataset.loopEnd) || 5;
+    let stopTimer = 0;
+
+    if (!card) return;
+    const playVideo = () => {
+      clearTimeout(stopTimer);
+      card.classList.add("is-hovered");
+      video.currentTime = 0;
+      video.play().catch(() => {});
+      stopTimer = window.setTimeout(() => {
+        video.pause();
+        video.currentTime = 0;
+        card.classList.remove("is-hovered");
+      }, loopEnd * 1000);
+    };
+    const stopVideo = () => {
+      clearTimeout(stopTimer);
+      video.pause();
+      video.currentTime = 0;
+      card.classList.remove("is-hovered");
+    };
+
+    card.addEventListener("mouseenter", playVideo);
+    card.addEventListener("mouseleave", stopVideo);
+  });
 });

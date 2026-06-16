@@ -1,6 +1,6 @@
 :root {
   --bg: #f7f3ec;
-  --fg: #1f1a16;
+  --fg: #4d4d4d;
   --muted: #7a7066;
   --line: #d8cfc3;
   --accent: #d9a441;
@@ -253,14 +253,14 @@ h2 {
 .button:hover,
 .button:focus-visible {
   border-color: var(--accent);
-  color: #1f1a16;
+  color: var(--fg);
   background: #fdf6ea;
 }
 
 .button--primary {
   border-color: var(--accent);
   background: var(--accent);
-  color: #1f1308;
+  color: var(--fg);
 }
 
 .button--primary:hover,
@@ -279,7 +279,7 @@ h2 {
 
 .panel--light {
   background: var(--panel-light);
-  color: #1a1510;
+  color: var(--fg);
 }
 
 .panel--dark {
@@ -289,7 +289,7 @@ h2 {
 
 #contact {
   background: var(--statement-bg);
-  color: #3d342c;
+  color: var(--fg);
 }
 
 #contact .panel__content {
@@ -364,6 +364,9 @@ h2 {
 
 .portfolio-hero h1 {
   margin-bottom: 12px;
+  font-size: clamp(0.9rem, 1.7vw, 1.4rem);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .portfolio-grid {
@@ -381,11 +384,31 @@ h2 {
   box-shadow: 0 16px 30px rgba(88, 63, 41, 0.12);
 }
 
+.about-page {
+  margin-top: var(--nav-height, 0px);
+  padding: 90px var(--page-gutter) 96px;
+}
+
+.about-hero h1 {
+  font-family: var(--font-display);
+  font-size: clamp(0.9rem, 1.7vw, 1.4rem);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin: 0 0 18px;
+}
+
+.about-text {
+  max-width: 720px;
+  display: grid;
+  gap: 2px;
+  text-align: justify;
+}
+
 .statement {
   --statement-bg: #f6f1e8;
   --statement-image-offset: 0px;
   background: var(--statement-bg);
-  color: #3d342c;
+  color: var(--fg);
   padding: 0;
 }
 
@@ -434,10 +457,10 @@ h2 {
 
 .statement__name {
   font-family: var(--font-display);
-  font-size: clamp(1.4rem, 2.4vw, 2.2rem);
+  font-size: clamp(1.1rem, 1.8vw, 1.6rem);
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: #2b221b;
+  color: #4d4d4d;
   margin-bottom: 12px;
 }
 
@@ -446,6 +469,7 @@ h2 {
   font-size: 1rem;
   line-height: 1.8;
   color: #4b4037;
+  text-align: justify;
 }
 
 .statement__text--intro {
@@ -512,6 +536,48 @@ h2 {
   will-change: transform, filter;
 }
 
+.card__media video {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  display: block;
+}
+
+.card__media--video {
+  position: relative;
+  overflow: hidden;
+}
+
+.card__cover,
+.card__video {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  display: block;
+}
+
+.card__video {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.card__cover {
+  transition: opacity 0.3s ease;
+}
+
+.card.is-hovered .card__video {
+  opacity: 1;
+}
+
+.card.is-hovered .card__cover {
+  opacity: 0;
+}
+
 .card__overlay {
   position: absolute;
   inset: 0;
@@ -519,7 +585,7 @@ h2 {
   place-items: center;
   text-transform: uppercase;
   letter-spacing: 0.2em;
-  font-size: 0.9rem;
+  font-size: 0.82rem;
   color: #f1e9dc;
   background: rgba(0, 0, 0, 0.45);
   opacity: 0;

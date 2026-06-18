@@ -177,7 +177,7 @@ main {
 .hero__image {
   position: absolute;
   inset: 0;
-  background-image: url("./Unforgotten Memory-1.jpg");
+  background-image: url("./resources/Unforgotten Memory-1.jpg");
   background-size: cover;
   background-position: center;
   filter: saturate(0.92);

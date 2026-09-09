@@ -7,39 +7,33 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;600&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css?v=artwork-four-square" />
 </head>
 <body>
   <header class="nav">
-    <a class="nav__brand" href="index.html">Zara Shahi</a>
+    <a class="nav__brand" href="index.html#top">Zara Shahi</a>
     <nav class="nav__links">
-      <div class="nav__dropdown">
-        <button class="nav__dropdown-trigger" type="button">Portfolio</button>
-        <div class="nav__menu" role="menu" aria-label="Portfolio">
-          <a href="weaving.html" role="menuitem">Weaving</a>
-          <a href="index.html#works" role="menuitem">Photography</a>
-          <a href="index.html#works" role="menuitem">Ceramics</a>
-          <a href="index.html#works" role="menuitem">Video Art</a>
-        </div>
-      </div>
-      <a href="index.html#workshops">Workshops</a>
-      <a href="about.html">About</a>
+      <a href="index.html#artworks">Artwork</a>
+      <a href="index.html#about">About</a>
+      <a href="index.html#cv">CV</a>
       <a href="index.html#contact">Contact</a>
     </nav>
   </header>
 
   <main class="portfolio-page">
-    <section class="portfolio-hero">
-      <div>
-        <h1>Weaving</h1>
-      </div>
-    </section>
-
-    <section class="portfolio-grid" aria-label="Weaving works grid">
-      <div class="portfolio-tile"></div>
-      <div class="portfolio-tile"></div>
-      <div class="portfolio-tile"></div>
-      <div class="portfolio-tile"></div>
+    <section class="portfolio-grid reveal" aria-label="Weaving works grid">
+      <button class="portfolio-tile portfolio-tile--image" type="button" aria-label="Open woven textile artwork" data-caption="In Between, 2025, silk, monofilament, and cotton" data-slides="./DSCF8078-.jpg|./In-Between-2.jpg|./Zara_Shahi_In Between3.jpg">
+        <img src="./DSCF8078-.jpg" alt="Woven textile artwork by Zara Shahi" />
+      </button>
+      <button class="portfolio-tile portfolio-tile--image" type="button" aria-label="Open Unforgotten Memories artwork" data-caption="Unforgotten Memories, 2025, silk, linen, cotton, and wood" data-slides="./Unforgotten Memories.jpg|./Unforgotten Memories2.jpg|./Unforgotten Memories4.jpg|./Unforgotten Memories3.jpg|./Unforgotten Memories5.jpg">
+        <img src="./Unforgotten Memories.jpg" alt="Unforgotten Memories artwork by Zara Shahi" />
+      </button>
+      <button class="portfolio-tile portfolio-tile--image" type="button" aria-label="Open Wound artwork" data-caption="Wound, 2025, silk, linen, cotton, metal, and wood" data-slides="./IMG_4501-2.jpg|./DSCF8923.jpg">
+        <img src="./IMG_4501-2.jpg" alt="Wound artwork by Zara Shahi" />
+      </button>
+      <button class="portfolio-tile portfolio-tile--image" type="button" aria-label="Open Rupture artwork" data-caption="Rupture, 2025, silk, linen, cotton, and metal" data-slides="./Rupture.jpg|./Rupture5.jpg|./Rupture4.jpg">
+        <img src="./Rupture.jpg" alt="Rupture artwork by Zara Shahi" />
+      </button>
       <div class="portfolio-tile"></div>
       <div class="portfolio-tile"></div>
       <div class="portfolio-tile"></div>
@@ -48,5 +42,7 @@
       <div class="portfolio-tile"></div>
     </section>
   </main>
+
+  <script src="script.js"></script>
 </body>
 </html>

@@ -1,146 +1,40 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const statementImage = document.querySelector(".statement__image img");
-  const statementLine = document.querySelector(".statement__line");
-  const statementSection = document.querySelector(".statement");
-  const worksSection = document.querySelector("#works");
-  const worksLabel = worksSection?.querySelector(".panel__content");
-  const worksGrid = worksSection?.querySelector(".grid");
-  let worksRaf = 0;
+  document.querySelectorAll("a[href]").forEach(link => {
+    link.addEventListener("click", event => {
+      if (
+        event.defaultPrevented ||
+        event.button !== 0 ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.shiftKey ||
+        event.altKey ||
+        link.target ||
+        link.hasAttribute("download")
+      ) {
+        return;
+      }
 
-  const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
-  const getTranslateX = element => {
-    const transform = getComputedStyle(element).transform;
-    if (!transform || transform === "none") return 0;
-    const matrixMatch = transform.match(/matrix\(([^)]+)\)/);
-    if (matrixMatch) {
-      const values = matrixMatch[1].split(",").map(value => parseFloat(value));
-      return values[4] || 0;
-    }
-    const matrix3dMatch = transform.match(/matrix3d\(([^)]+)\)/);
-    if (matrix3dMatch) {
-      const values = matrix3dMatch[1]
-        .split(",")
-        .map(value => parseFloat(value));
-      return values[12] || 0;
-    }
-    return 0;
-  };
-  const getContentBounds = element => {
-    const rect = element.getBoundingClientRect();
-    const styles = getComputedStyle(element);
-    const paddingLeft = parseFloat(styles.paddingLeft) || 0;
-    const paddingRight = parseFloat(styles.paddingRight) || 0;
-    return {
-      left: rect.left + paddingLeft,
-      right: rect.right - paddingRight,
-      width: rect.width - paddingLeft - paddingRight
-    };
-  };
+      const href = link.getAttribute("href");
+      if (!href || href.startsWith("#")) return;
 
-  const getContainedImageBox = img => {
-    const rect = img.getBoundingClientRect();
-    if (!img.naturalWidth || !img.naturalHeight || !rect.width || !rect.height) {
-      return rect;
-    }
-    const scale = Math.min(
-      rect.width / img.naturalWidth,
-      rect.height / img.naturalHeight
-    );
-    const drawnWidth = img.naturalWidth * scale;
-    const drawnHeight = img.naturalHeight * scale;
-    return {
-      left: rect.left,
-      top: rect.top + (rect.height - drawnHeight) / 2,
-      width: drawnWidth,
-      height: drawnHeight
-    };
-  };
+      const nextUrl = new URL(href, window.location.href);
+      if (nextUrl.protocol === "mailto:" || nextUrl.protocol === "tel:") return;
 
-  const updateWorksAlignment = () => {
-    if (
-      !statementImage ||
-      !statementLine ||
-      !statementSection ||
-      !worksSection ||
-      !worksLabel ||
-      !worksGrid
-    ) {
-      return;
-    }
-    const isDesktop = window.matchMedia("(min-width: 801px)").matches;
-    if (!isDesktop) {
-      worksSection.style.removeProperty("--works-label-offset");
-      worksSection.style.removeProperty("--works-grid-offset");
-      statementSection.style.removeProperty("--statement-image-offset");
-      return;
-    }
+      const currentUrl = new URL(window.location.href);
+      const samePage =
+        nextUrl.origin === currentUrl.origin &&
+        nextUrl.pathname === currentUrl.pathname &&
+        nextUrl.search === currentUrl.search;
 
-    const imageBox = getContainedImageBox(statementImage);
-    const labelRect = worksLabel.getBoundingClientRect();
-    const currentLabelOffset = getTranslateX(worksLabel);
-    if (!imageBox.width || !labelRect.width) return;
+      if (samePage && nextUrl.hash) return;
 
-    const imageCenter = imageBox.left + imageBox.width / 2;
-    const labelCenter = labelRect.left + labelRect.width / 2;
-    const unshiftedLabelCenter = labelCenter - currentLabelOffset;
-    let labelOffset = imageCenter - unshiftedLabelCenter;
-
-    const worksBounds = getContentBounds(worksSection);
-    const leftColumnWidth = Math.max(240, worksBounds.width * 0.38);
-    const leftColumnRight = worksBounds.left + leftColumnWidth;
-    const labelLeft = labelRect.left - currentLabelOffset;
-    const labelRight = labelRect.right - currentLabelOffset;
-    const labelMin = worksBounds.left - labelLeft;
-    const labelMax = leftColumnRight - labelRight;
-    labelOffset = clamp(labelOffset, labelMin, labelMax);
-    worksSection.style.setProperty(
-      "--works-label-offset",
-      `${labelOffset.toFixed(1)}px`
-    );
-
-    const cards = worksGrid.querySelectorAll(".card");
-    const currentGridOffset = getTranslateX(worksGrid);
-    const targetRect =
-      cards.length > 1
-        ? cards[1].getBoundingClientRect()
-        : worksGrid.getBoundingClientRect();
-    const targetCenter = targetRect.left + targetRect.width / 2;
-    const unshiftedTargetCenter = targetCenter - currentGridOffset;
-    const lineRect = statementLine.getBoundingClientRect();
-    const lineCenter = lineRect.left + lineRect.width / 2;
-    let gridOffset = lineCenter - unshiftedTargetCenter;
-    const gridRect = worksGrid.getBoundingClientRect();
-    const gridLeft = gridRect.left - currentGridOffset;
-    const gridRight = gridRect.right - currentGridOffset;
-    const gridMin = worksBounds.left - gridLeft;
-    const gridMax = worksBounds.right - gridRight;
-    gridOffset = clamp(gridOffset, gridMin, gridMax);
-    worksSection.style.setProperty(
-      "--works-grid-offset",
-      `${gridOffset.toFixed(1)}px`
-    );
-
-    if (statementSection) {
-      statementSection.style.setProperty("--statement-image-offset", "0px");
-    }
-  };
-
-  const scheduleWorksAlignment = () => {
-    if (worksRaf) cancelAnimationFrame(worksRaf);
-    worksRaf = requestAnimationFrame(updateWorksAlignment);
-  };
-
-  if (statementImage) {
-    if (statementImage.complete && statementImage.naturalWidth) {
-      scheduleWorksAlignment();
-    } else {
-      statementImage.addEventListener("load", scheduleWorksAlignment, {
-        once: true
-      });
-    }
-  }
-  window.addEventListener("resize", scheduleWorksAlignment);
-  window.addEventListener("load", scheduleWorksAlignment);
+      event.preventDefault();
+      document.body.classList.add("is-leaving");
+      window.setTimeout(() => {
+        window.location.href = nextUrl.href;
+      }, 280);
+    });
+  });
 
   const observer = new IntersectionObserver(
     entries => {
@@ -205,5 +99,131 @@ document.addEventListener("DOMContentLoaded", () => {
 
     card.addEventListener("mouseenter", playVideo);
     card.addEventListener("mouseleave", stopVideo);
+  });
+
+  const lightboxTriggers = document.querySelectorAll(".portfolio-tile--image");
+  if (lightboxTriggers.length) {
+    const lightbox = document.createElement("div");
+    lightbox.className = "lightbox";
+    lightbox.setAttribute("role", "dialog");
+    lightbox.setAttribute("aria-modal", "true");
+    lightbox.setAttribute("aria-label", "Expanded artwork image");
+    lightbox.innerHTML = `
+      <button class="lightbox__close" type="button" aria-label="Close expanded image">&times;</button>
+      <div class="lightbox__content">
+        <div class="lightbox__media">
+          <button class="lightbox__nav lightbox__nav--prev" type="button" aria-label="Previous image">‹</button>
+          <img class="lightbox__image" alt="" />
+          <button class="lightbox__nav lightbox__nav--next" type="button" aria-label="Next image">›</button>
+        </div>
+        <div class="lightbox__caption"></div>
+      </div>
+    `;
+    document.body.appendChild(lightbox);
+
+    const lightboxImage = lightbox.querySelector(".lightbox__image");
+    const lightboxCaption = lightbox.querySelector(".lightbox__caption");
+    const previousButton = lightbox.querySelector(".lightbox__nav--prev");
+    const nextButton = lightbox.querySelector(".lightbox__nav--next");
+    const closeButton = lightbox.querySelector(".lightbox__close");
+    let slideUrls = [];
+    let currentSlideIndex = 0;
+
+    const renderSlide = () => {
+      if (!lightboxImage || !slideUrls.length) return;
+      lightboxImage.src = slideUrls[currentSlideIndex];
+      lightboxImage.alt =
+        currentSlideIndex === 0
+          ? lightboxImage.dataset.baseAlt || ""
+          : `${lightboxImage.dataset.baseAlt || "Artwork"} detail ${currentSlideIndex + 1}`;
+    };
+
+    const updateSlideButtons = () => {
+      const hasSlides = slideUrls.length > 1;
+      if (previousButton) previousButton.hidden = !hasSlides;
+      if (nextButton) nextButton.hidden = !hasSlides;
+    };
+
+    const showSlide = direction => {
+      if (slideUrls.length < 2) return;
+      currentSlideIndex =
+        (currentSlideIndex + direction + slideUrls.length) % slideUrls.length;
+      lightboxImage?.classList.add("is-dissolving");
+      window.setTimeout(() => {
+        renderSlide();
+        window.setTimeout(() => {
+          lightboxImage?.classList.remove("is-dissolving");
+        }, 80);
+      }, 220);
+    };
+
+    const openLightbox = trigger => {
+      const image = trigger.querySelector("img");
+      if (!image || !lightboxImage) return;
+      slideUrls = (trigger.dataset.slides || image.currentSrc || image.src)
+        .split("|")
+        .map(slideUrl => slideUrl.trim())
+        .filter(Boolean);
+      currentSlideIndex = 0;
+      lightboxImage.dataset.baseAlt = image.alt;
+      renderSlide();
+      updateSlideButtons();
+      if (lightboxCaption) {
+        lightboxCaption.textContent = trigger.dataset.caption || "";
+        lightboxCaption.hidden = !trigger.dataset.caption;
+      }
+      document.body.classList.add("lightbox-open");
+      requestAnimationFrame(() => lightbox.classList.add("is-open"));
+      closeButton?.focus();
+    };
+
+    const closeLightbox = () => {
+      lightbox.classList.remove("is-open");
+      document.body.classList.remove("lightbox-open");
+    };
+
+    previousButton?.addEventListener("click", () => showSlide(-1));
+    nextButton?.addEventListener("click", () => showSlide(1));
+
+    lightboxTriggers.forEach(trigger => {
+      trigger.addEventListener("click", () => openLightbox(trigger));
+    });
+
+    lightbox.addEventListener("click", event => {
+      if (event.target === lightbox || event.target === closeButton) {
+        closeLightbox();
+      }
+    });
+
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape" && lightbox.classList.contains("is-open")) {
+        closeLightbox();
+      }
+      if (event.key === "ArrowLeft" && lightbox.classList.contains("is-open")) {
+        showSlide(-1);
+      }
+      if (event.key === "ArrowRight" && lightbox.classList.contains("is-open")) {
+        showSlide(1);
+      }
+    });
+  }
+
+  const contactForm = document.querySelector(".contact-form");
+  contactForm?.addEventListener("submit", event => {
+    event.preventDefault();
+    const formData = new FormData(contactForm);
+    const name = String(formData.get("name") || "").trim();
+    const email = String(formData.get("email") || "").trim();
+    const message = String(formData.get("message") || "").trim();
+    const body = [
+      `Name: ${name}`,
+      `Email: ${email}`,
+      "",
+      message
+    ].join("\n");
+    const mailtoUrl = new URL("mailto:imzarashahi@gmail.com");
+    mailtoUrl.searchParams.set("subject", "Website inquiry");
+    mailtoUrl.searchParams.set("body", body);
+    window.location.href = mailtoUrl.href;
   });
 });

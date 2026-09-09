@@ -3,81 +3,186 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Artist Portfolio</title>
+  <title>Zara Shahi</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;600&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css?v=cv-heading-more" />
 </head>
 <body>
   <header class="nav">
-    <a class="nav__brand" href="index.html">Zara Shahi</a>
+    <a class="nav__brand" href="#top">Zara Shahi</a>
     <nav class="nav__links">
-      <div class="nav__dropdown">
-        <button class="nav__dropdown-trigger" type="button">Portfolio</button>
-        <div class="nav__menu" role="menu" aria-label="Portfolio">
-          <a href="weaving.html" role="menuitem">Weaving</a>
-          <a href="#works" role="menuitem">Photography</a>
-          <a href="#works" role="menuitem">Ceramics</a>
-          <a href="#works" role="menuitem">Video Art</a>
-        </div>
-      </div>
-      <a href="#workshops">Workshops</a>
-      <a href="about.html">About</a>
+      <a href="#artworks">Artwork</a>
+      <a href="#about">About</a>
+      <a href="#cv">CV</a>
       <a href="#contact">Contact</a>
     </nav>
   </header>
 
-  <main>
+  <main class="home-page">
     <div id="top"></div>
-    <section class="statement reveal" id="bio">
-      <div class="statement__layout">
-        <div class="statement__image">
-          <img src="./Zara_Shahi.jpg" alt="Portrait with textile installation" />
-        </div>
-        <div class="statement__body">
-          <div class="statement__name">Statement</div>
-          <div class="statement__line" aria-hidden="true"></div>
-          <div class="statement__content">
-            <h2 class="visually-hidden">Artist Statement</h2>
-            <p class="statement__text statement__text--intro">Art has always been my way of navigating the mind, a conversation between what I carry and what making allows. My practice begins with self observation: quiet shifts of anxiety, the heaviness of silence, moments of rupture and repair. It becomes a sanctuary for exploring identity and visibility as an inner landscape where light and shadow coexist. The work is rooted in duality, the desire to be seen and the impulse to disappear. I trace emotional states that are difficult to name, drawn to what cannot be easily seen: tension in the body, thoughts looping beneath the surface, resilience forming in ordinary acts. Through different mediums, and the interplay of presence and absence, I create structures that reveal and conceal at once, holding vulnerability and strength in the same space.</p>
+
+    <section class="home-section home-section--artworks reveal" id="artworks">
+      <h1 class="section-heading">Artwork</h1>
+      <div class="portfolio-grid" aria-label="Artwork grid">
+        <button class="portfolio-tile portfolio-tile--image" type="button" aria-label="Open In Between artwork" data-caption="In Between, 2025, silk, monofilament, and cotton" data-slides="./DSCF8078-.jpg|./In-Between-2.jpg|./Zara_Shahi_In Between3.jpg">
+          <img src="./DSCF8078-.jpg" alt="In Between artwork by Zara Shahi" />
+        </button>
+        <button class="portfolio-tile portfolio-tile--image" type="button" aria-label="Open Unforgotten Memories artwork" data-caption="Unforgotten Memories, 2025, silk, linen, cotton, and wood" data-slides="./Unforgotten Memories.jpg|./Unforgotten Memories2.jpg|./Unforgotten Memories4.jpg|./Unforgotten Memories3.jpg|./Unforgotten Memories5.jpg">
+          <img src="./Unforgotten Memories.jpg" alt="Unforgotten Memories artwork by Zara Shahi" />
+        </button>
+        <button class="portfolio-tile portfolio-tile--image" type="button" aria-label="Open Wound artwork" data-caption="Wound, 2025, silk, linen, cotton, metal, and wood" data-slides="./IMG_4501-2.jpg|./DSCF8923.jpg">
+          <img src="./IMG_4501-2.jpg" alt="Wound artwork by Zara Shahi" />
+        </button>
+        <button class="portfolio-tile portfolio-tile--image" type="button" aria-label="Open Rupture artwork" data-caption="Rupture, 2025, silk, linen, cotton, and metal" data-slides="./Rupture.jpg|./Rupture5.jpg|./Rupture4.jpg">
+          <img src="./Rupture.jpg" alt="Rupture artwork by Zara Shahi" />
+        </button>
+      </div>
+    </section>
+
+    <section class="about-hero home-section reveal" id="about">
+      <div class="about-layout">
+        <div class="about-body">
+          <div class="about-name">About</div>
+          <div class="about-text-row">
+            <div class="about-copy">
+              <div class="about-text">
+                <p>I am an interdisciplinary artist working primarily with textile-based processes. I hold a BFA in Textile Design and am currently pursuing an MFA in Fibers at the University of Massachusetts Dartmouth. My work has been presented in juried exhibitions, including the 39th Annual Materials: Hard + Soft at the Greater Denton Arts Council in Texas, PhotoSpiva 2026 at Spiva Center for the Arts in Missouri, and In Black &amp; White, a virtual exhibition by Site Brooklyn Gallery.</p>
+                <p>My practice is shaped by lived experience, self-observation, and the emotional weight of in-between spaces. I explore inner struggles shaped by the environment, a theme reflected throughout my artistic expression. I examine dualities including presence and absence, concealment and revelation, and fragility and endurance. Across materials, I carry memory, silence, and resistance while holding softness as strength.</p>
+                <p>Before moving to the United States, I worked as a textile designer, photographer, and printmaker and founded my own art shop, where I created handmade woven pieces. I have also collaborated with arts organizations and led community workshops.</p>
+              </div>
+            </div>
+            <div class="about-image">
+              <img src="./XM8A9946 2.jpg" alt="Zara Shahi portrait" />
+            </div>
           </div>
-          <div class="statement__line" aria-hidden="true"></div>
         </div>
       </div>
     </section>
 
-    <section class="panel panel--dark reveal" id="works">
-      <div class="panel__content">
-        <div class="panel__tag">Selected Works</div>
-      </div>
-      <div class="grid">
-        <article class="card">
-          <div class="card__media">
-            <img src="./Unforgotten-Memories-1.jpg?v=1" alt="Placeholder work" />
+    <section class="home-section cv-section reveal" id="cv">
+      <div class="cv-section__inner">
+        <h2 class="section-heading">CV</h2>
+        <div class="cv-list">
+          <div class="cv-list__group">
+            <h3>Education</h3>
+            <div class="cv-entry">
+              <p class="cv-entry__line"><span class="cv-entry__main"><strong>MFA, Fibers</strong> <em>University of Massachusetts Dartmouth, MA</em></span><span class="cv-entry__date">Present</span></p>
+            </div>
+            <div class="cv-entry">
+              <p class="cv-entry__line"><span class="cv-entry__main"><strong>BFA, Textile Design</strong> <em>University of Science and Culture, Tehran, Iran</em></span><span class="cv-entry__date">2020</span></p>
+            </div>
           </div>
-          <div class="card__overlay">Unforgotten Memories — 2025</div>
-        </article>
-        <article class="card">
-          <div class="card__media card__media--video">
-            <img class="card__cover" src="./IMG_6162.jpg" alt="Placeholder work" />
-            <video class="card__video" src="./Unspoken.MOV" muted playsinline preload="metadata" data-loop-end="5"></video>
+          <div class="cv-list__group">
+            <h3>Work Experience</h3>
+            <div class="cv-entry">
+              <p class="cv-entry__line"><span class="cv-entry__main"><strong>Gallery Assistant - College of Visual and Performing Arts, University of Massachusetts Dartmouth</strong> <em>(Dartmouth, MA)</em></span><span class="cv-entry__date">Present</span></p>
+            </div>
+            <div class="cv-entry">
+              <p class="cv-entry__line"><span class="cv-entry__main"><strong>Studio Assistant - Jonathan Michaud Studio</strong> <em>(Brooklyn, NY)</em></span><span class="cv-entry__date">2026</span></p>
+            </div>
+            <div class="cv-entry">
+              <p class="cv-entry__line"><span class="cv-entry__main"><strong>Teaching Assistant - University of Massachusetts Dartmouth</strong> <em>(Dartmouth, MA)</em></span><span class="cv-entry__date">2024 - 2025</span></p>
+            </div>
+            <div class="cv-entry">
+              <p class="cv-entry__line"><span class="cv-entry__main"><strong>Photographer - Lozee Advertising Agency</strong> <em>(Tehran, Iran)</em></span><span class="cv-entry__date">2022 - 2024</span></p>
+            </div>
+            <div class="cv-entry">
+              <p class="cv-entry__line"><span class="cv-entry__main"><strong>Printmaker - Dotan Studio</strong> <em>(Tehran, Iran)</em></span><span class="cv-entry__date">2021 - 2022</span></p>
+            </div>
+            <div class="cv-entry">
+              <p class="cv-entry__line"><span class="cv-entry__main"><strong>Macramé Artist and Owner - Leev Art Studio</strong> <em>(Tehran, Iran)</em></span><span class="cv-entry__date">2020 - 2021</span></p>
+            </div>
+            <div class="cv-entry">
+              <p class="cv-entry__line"><span class="cv-entry__main"><strong>Textile Designer - Naghsh Negaran Pendar Company</strong> <em>(Tehran, Iran)</em></span><span class="cv-entry__date">2018 - 2020</span></p>
+            </div>
           </div>
-          <div class="card__overlay">Unspoken — 2025</div>
-        </article>
-        <article class="card">
-          <div class="card__media">
-            <img src="./IMG_4501-2.jpg" alt="Placeholder work" />
+          <div class="cv-list__group">
+            <h3>Teaching Experience</h3>
+            <div class="cv-entry">
+              <p class="cv-entry__line"><span class="cv-entry__main"><strong>Community Weaving Workshop - New Bedford Whaling National Historical Park</strong> <em>(New Bedford, MA)</em></span><span class="cv-entry__date">2026</span></p>
+            </div>
+            <div class="cv-entry">
+              <p class="cv-entry__line"><span class="cv-entry__main"><strong>Hatch Studios Weaving Workshop - University of Massachusetts Dartmouth</strong> <em>(New Bedford, MA)</em></span><span class="cv-entry__date">2025</span></p>
+            </div>
+            <div class="cv-entry">
+              <p class="cv-entry__line"><span class="cv-entry__main"><strong>CVPA Weaving Workshop - University of Massachusetts Dartmouth</strong> <em>(Dartmouth, MA)</em></span><span class="cv-entry__date">2025</span></p>
+            </div>
+            <div class="cv-entry">
+              <p class="cv-entry__line"><span class="cv-entry__main"><strong>Summer Community Projects - University of Massachusetts Dartmouth</strong> <em>(Dartmouth, MA)</em></span><span class="cv-entry__date">2025</span></p>
+            </div>
           </div>
-          <div class="card__overlay">Wound — 2025</div>
-        </article>
+          <div class="cv-list__group">
+            <h3>Commissions and Projects</h3>
+            <div class="cv-entry">
+              <p class="cv-entry__line"><span class="cv-entry__main"><strong>Interior Design Weaving Installation</strong> <em>(Midland, TX)</em></span><span class="cv-entry__date">2026</span></p>
+            </div>
+            <div class="cv-entry">
+              <p class="cv-entry__line"><span class="cv-entry__main"><strong>Weaving Project Floor Loom Weaving</strong> <em>(Dartmouth, MA)</em></span><span class="cv-entry__date">2025</span></p>
+            </div>
+            <div class="cv-entry">
+              <p class="cv-entry__line"><span class="cv-entry__main"><strong>Big Sky Cast-Offs Paper Quilts</strong> <em>(Dartmouth, MA)</em></span><span class="cv-entry__date">2025</span></p>
+            </div>
+            <div class="cv-entry">
+              <p class="cv-entry__line"><span class="cv-entry__main"><strong>Being Seen: Celebrating SouthCoast Pride - DATMA</strong> <em>(Project with Liz Collins) Public Art (New Bedford / Dartmouth MA)</em></span><span class="cv-entry__date">2025</span></p>
+            </div>
+          </div>
+          <div class="cv-list__group">
+            <h3>Residencies</h3>
+            <div class="cv-entry">
+              <p class="cv-entry__line"><span class="cv-entry__main"><strong>New Bedford Whaling National Historical Park</strong> <em>(U.S. National Park Service) (New Bedford, MA)</em></span><span class="cv-entry__date">2026</span></p>
+            </div>
+          </div>
+          <div class="cv-list__group">
+            <h3>Professional Service and Leadership</h3>
+            <div class="cv-entry">
+              <p class="cv-entry__line"><span class="cv-entry__main"><strong>Vice President - CVPA Fibers Club, University of Massachusetts Dartmouth</strong></span><span class="cv-entry__date">Present</span></p>
+            </div>
+            <div class="cv-entry">
+              <p class="cv-entry__line"><span class="cv-entry__main"><strong>Orientation Leader - International Student and Scholar Center, University of Massachusetts Dartmouth</strong></span><span class="cv-entry__date">2025</span></p>
+            </div>
+            <div class="cv-entry">
+              <p class="cv-entry__line"><span class="cv-entry__main"><strong>Public Art Installation Team Member - DATMA</strong> <em>(Design Art Technology Massachusetts) (Dartmouth, MA)</em></span><span class="cv-entry__date">2025</span></p>
+            </div>
+          </div>
+          <div class="cv-list__group">
+            <h3>Awards and Scholarships</h3>
+            <div class="cv-entry">
+              <p class="cv-entry__line"><span class="cv-entry__main"><strong>Gallery Assistantship - Partial Scholarship</strong> <em>University of Massachusetts Dartmouth</em></span><span class="cv-entry__date">2025 - 2026</span></p>
+            </div>
+            <div class="cv-entry">
+              <p class="cv-entry__line"><span class="cv-entry__main"><strong>Teaching Assistantship - Full Scholarship</strong> <em>University of Massachusetts Dartmouth</em></span><span class="cv-entry__date">2024 - 2025</span></p>
+            </div>
+          </div>
+          <div class="cv-list__group">
+            <h3>Exhibitions</h3>
+            <div class="cv-entry"><p class="cv-entry__line"><span class="cv-entry__main"><strong>Unforgotten</strong> Solo Exhibition <em>(New Bedford, MA)</em></span><span class="cv-entry__date">2026</span></p></div>
+            <div class="cv-entry"><p class="cv-entry__line"><span class="cv-entry__main"><strong>Still We Bloom</strong> Group Exhibition <em>(New Bedford, MA)</em></span><span class="cv-entry__date">2026</span></p></div>
+            <div class="cv-entry"><p class="cv-entry__line"><span class="cv-entry__main"><strong>Materials: Hard + Soft - Weaving</strong> Group Exhibition <em>(Denton, TX)</em></span><span class="cv-entry__date">2026</span></p></div>
+            <div class="cv-entry"><p class="cv-entry__line"><span class="cv-entry__main"><strong>In Black &amp; White - Photography</strong> Online Exhibition <em>(Site: Brooklyn)</em></span><span class="cv-entry__date">2025</span></p></div>
+            <div class="cv-entry"><p class="cv-entry__line"><span class="cv-entry__main"><strong>Lighting the Star Store - Fiber Art, Photography</strong> Group Exhibition <em>(New Bedford, MA)</em></span><span class="cv-entry__date">2025</span></p></div>
+            <div class="cv-entry"><p class="cv-entry__line"><span class="cv-entry__main"><strong>Hatch Studios - Fiber Art, Photography</strong> Group Exhibition <em>(New Bedford, MA)</em></span><span class="cv-entry__date">2025</span></p></div>
+            <div class="cv-entry"><p class="cv-entry__line"><span class="cv-entry__main"><strong>Art Current - Fiber Art, Photography</strong> Group Exhibition <em>(New Bedford, MA)</em></span><span class="cv-entry__date">2025</span></p></div>
+            <div class="cv-entry"><p class="cv-entry__line"><span class="cv-entry__main"><strong>Heimtextil - Surface Design</strong> Group Exhibition <em>(Frankfurt, Germany)</em></span><span class="cv-entry__date">2018</span></p></div>
+            <div class="cv-entry"><p class="cv-entry__line"><span class="cv-entry__main"><strong>The Third Step - Photography</strong> Group Exhibition <em>(Tehran, Iran)</em></span><span class="cv-entry__date">2018</span></p></div>
+          </div>
+          <div class="cv-list__group">
+            <h3>Publications and Press</h3>
+            <div class="cv-entry"><p class="cv-entry__line"><span class="cv-entry__main"><a href="https://www.capeandislands.org/local-news/2026-06-02/new-bedford-artist-in-residence-leads-community-weaving-project" target="_blank" rel="noopener">New Bedford artist-in-residence leads community weaving project.</a></span><span class="cv-entry__date">2026</span></p></div>
+            <div class="cv-entry"><p class="cv-entry__line"><span class="cv-entry__main"><a href="https://artstoheartsproject.com/zara-shahis-minimalist-fibre-art/" target="_blank" rel="noopener">This artist uses fibre to create minimalist textile installations.</a></span><span class="cv-entry__date">2026</span></p></div>
+            <div class="cv-entry"><p class="cv-entry__line"><span class="cv-entry__main"><a href="https://www.southcoasttoday.com/story/news/local/2026/05/22/new-bedford-park-names-three-artists-in-residence/90198328007/" target="_blank" rel="noopener">New Bedford National Historical Park 2026 Artist Residency</a></span><span class="cv-entry__date">2026</span></p></div>
+            <div class="cv-entry"><p class="cv-entry__line"><span class="cv-entry__main">Artists of the Year 2025 - Arts to Hearts Magazine</span><span class="cv-entry__date">2026</span></p></div>
+            <div class="cv-entry"><p class="cv-entry__line"><span class="cv-entry__main">101 Art Book: Photography Edition - Arts to Hearts Magazine</span><span class="cv-entry__date">2026</span></p></div>
+          </div>
+        </div>
       </div>
     </section>
 
     <section class="panel panel--dark reveal" id="contact">
       <div class="panel__content">
         <div class="panel__tag">Contact</div>
-        <div class="contact">
+        <div class="contact contact--bar">
           <div class="contact__line">
             <div class="contact__primary">
               <div class="contact__item">
@@ -89,12 +194,6 @@
               </div>
               <div class="contact__item">
                 <svg class="contact__inline-icon" viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M6.5 4.5l3 1.2-1.1 3.1c1.6 2.8 3.9 5.1 6.7 6.7l3.1-1.1 1.2 3c-1 .9-2.3 1.4-3.7 1.3-6.4-.5-11.7-5.8-12.2-12.2-.1-1.4.4-2.7 1.3-3.7z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" />
-                </svg>
-                <a class="contact__link contact__value" href="tel:+17746360844">+1 (774) 636-0844</a>
-              </div>
-              <div class="contact__item">
-                <svg class="contact__inline-icon" viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M12 21s6-6.2 6-11a6 6 0 10-12 0c0 4.8 6 11 6 11z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" />
                   <circle cx="12" cy="10" r="2.6" stroke="currentColor" stroke-width="1.6" fill="none" />
                 </svg>
@@ -102,7 +201,7 @@
               </div>
             </div>
             <div class="contact__social">
-              <a class="contact__social-link" href="https://instagram.com/zara.madeart" target="_blank" rel="noopener" aria-label="Instagram">
+              <a class="contact__social-link" href="https://instagram.com/zara.shahi.art" target="_blank" rel="noopener" aria-label="Instagram">
                 <svg class="contact__social-icon" viewBox="0 0 24 24" aria-hidden="true">
                   <rect x="5.2" y="5.2" width="13.6" height="13.6" rx="4" stroke="currentColor" stroke-width="1.6" fill="none" />
                   <circle cx="12" cy="12" r="3.1" stroke="currentColor" stroke-width="1.6" fill="none" />
@@ -130,7 +229,6 @@
     <div>© Zara Shahi — 2026</div>
     <div class="footer__links">
       <a href="#top">Back to top</a>
-      <a href="#works">Portfolio</a>
     </div>
   </footer>
 

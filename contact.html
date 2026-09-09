@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contact</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;600&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="nav">
+    <a class="nav__brand" href="index.html#top">Zara Shahi</a>
+    <nav class="nav__links">
+      <a href="index.html#artworks">Artwork</a>
+      <a href="index.html#about">About</a>
+      <a href="index.html#cv">CV</a>
+      <a href="index.html#contact">Contact</a>
+    </nav>
+  </header>
+
+  <main class="contact-page">
+    <section class="contact-page__content reveal">
+      <div class="contact">
+        <p class="contact__message">Thank you for visiting my website. For exhibition inquiries, workshops, commissions, or other opportunities, please feel free to reach out.</p>
+        <a class="contact__link contact__value" href="mailto:imzarashahi@gmail.com">imzarashahi@gmail.com</a>
+        <form class="contact-form" aria-label="Contact form">
+          <label class="contact-form__field">
+            <span>Name</span>
+            <input name="name" type="text" autocomplete="name" required />
+          </label>
+          <label class="contact-form__field">
+            <span>Email</span>
+            <input name="email" type="email" autocomplete="email" required />
+          </label>
+          <label class="contact-form__field">
+            <span>Message</span>
+            <textarea name="message" rows="6" required></textarea>
+          </label>
+          <button class="contact-form__submit" type="submit">Send</button>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

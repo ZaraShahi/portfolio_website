@@ -128,8 +128,35 @@ document.addEventListener("DOMContentLoaded", () => {
     const closeButton = lightbox.querySelector(".lightbox__close");
     let slideUrls = [];
     let currentSlideIndex = 0;
+    // In-memory cache so already-fetched images stay decoded across slides
+    // for the current set; cleared when the lightbox closes to release RAM.
+    const preloadCache = new Map();
 
-    const renderSlide = () => {
+    const preloadSlide = url => {
+      if (!url || preloadCache.has(url)) return preloadCache.get(url);
+      const img = new Image();
+      img.decoding = "async";
+      img.src = url;
+      preloadCache.set(url, img);
+      return img;
+    };
+
+    const preloadAllSlides = () => {
+      slideUrls.forEach(preloadSlide);
+    };
+
+    const waitForImage = url =>
+      new Promise(resolve => {
+        const img = preloadSlide(url);
+        if (img.complete && img.naturalWidth > 0) {
+          resolve();
+          return;
+        }
+        img.addEventListener("load", () => resolve(), { once: true });
+        img.addEventListener("error", () => resolve(), { once: true });
+      });
+
+    const applySlide = () => {
       if (!lightboxImage || !slideUrls.length) return;
       lightboxImage.src = slideUrls[currentSlideIndex];
       lightboxImage.alt =
@@ -144,17 +171,35 @@ document.addEventListener("DOMContentLoaded", () => {
       if (nextButton) nextButton.hidden = !hasSlides;
     };
 
-    const showSlide = direction => {
+    const FADE_MS = 220;
+    let slideToken = 0;
+
+    const showSlide = async direction => {
       if (slideUrls.length < 2) return;
+      const token = ++slideToken;
       currentSlideIndex =
         (currentSlideIndex + direction + slideUrls.length) % slideUrls.length;
+      const nextUrl = slideUrls[currentSlideIndex];
+      // Start decoding the next image and warm up its neighbors in the
+      // background so subsequent clicks are instant.
+      const decoded = waitForImage(nextUrl);
+      preloadSlide(
+        slideUrls[(currentSlideIndex + 1) % slideUrls.length]
+      );
+      preloadSlide(
+        slideUrls[(currentSlideIndex - 1 + slideUrls.length) % slideUrls.length]
+      );
+
       lightboxImage?.classList.add("is-dissolving");
-      window.setTimeout(() => {
-        renderSlide();
-        window.setTimeout(() => {
-          lightboxImage?.classList.remove("is-dissolving");
-        }, 80);
-      }, 220);
+      const fadeOut = new Promise(resolve => setTimeout(resolve, FADE_MS));
+      await Promise.all([fadeOut, decoded]);
+      if (token !== slideToken) return; // superseded by a newer click
+      applySlide();
+      // Ensure the new src is committed before we lift the dissolve class.
+      requestAnimationFrame(() => {
+        if (token !== slideToken) return;
+        lightboxImage?.classList.remove("is-dissolving");
+      });
     };
 
     const openLightbox = trigger => {
@@ -165,8 +210,10 @@ document.addEventListener("DOMContentLoaded", () => {
         .map(slideUrl => slideUrl.trim())
         .filter(Boolean);
       currentSlideIndex = 0;
+      slideToken++;
       lightboxImage.dataset.baseAlt = image.alt;
-      renderSlide();
+      preloadAllSlides();
+      applySlide();
       updateSlideButtons();
       if (lightboxCaption) {
         lightboxCaption.textContent = trigger.dataset.caption || "";
@@ -180,6 +227,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const closeLightbox = () => {
       lightbox.classList.remove("is-open");
       document.body.classList.remove("lightbox-open");
+      slideToken++;
+      // Drop cached Image objects so their decoded bitmaps can be GC'd.
+      preloadCache.clear();
+      if (lightboxImage) {
+        lightboxImage.removeAttribute("src");
+        lightboxImage.classList.remove("is-dissolving");
+      }
     };
 
     previousButton?.addEventListener("click", () => showSlide(-1));

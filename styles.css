@@ -22,7 +22,7 @@
 
 html {
   scroll-behavior: smooth;
-  scroll-padding-top: calc(var(--nav-height, 0px) + 24px);
+  scroll-padding-top: calc(var(--nav-height, 0px));
 }
 
 body {
@@ -189,7 +189,7 @@ main {
 .hero__image {
   position: absolute;
   inset: 0;
-  background-image: url("./Unforgotten Memory-1.jpg");
+  background-image: url("assets/images/unforgotten-memories-1.jpg");
   background-size: cover;
   background-position: center;
   filter: saturate(0.92);
@@ -343,7 +343,9 @@ h2 {
 }
 
 .home-section {
-  scroll-margin-top: calc(var(--nav-height, 0px) + 24px);
+  /* Clearance for hash-nav is handled by html { scroll-padding-top }.
+     Setting scroll-margin here would double the offset. */
+  scroll-margin-top: 0;
 }
 
 .home-section--artworks {

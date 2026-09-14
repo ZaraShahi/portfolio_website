@@ -328,6 +328,89 @@ document.addEventListener("DOMContentLoaded", () => {
         else if (event.key === "ArrowLeft") go(-1);
         else if (event.key === "ArrowRight") go(1);
       });
+
+      // --- Touch drag navigation (mobile/tablet) ---
+      // The slides follow the finger 1:1 while dragging, then a medium-light
+      // snap settles the nearest image on release. Transforms drive the drag,
+      // then hand off to the class-based slide transition for the snap.
+      let dragStartX = 0;
+      let dragStartY = 0;
+      let dragDelta = 0;
+      let dragging = false;
+      let dragAxis = null; // null = undecided, "x" = horizontal, "y" = vertical
+      let stageWidth = 0;
+      let draggedSlots = [];
+
+      const applyDrag = dx => {
+        for (const slot of draggedSlots) {
+          slot.style.transform = `translateX(${dx}px)`;
+        }
+      };
+      const releaseDrag = () => {
+        for (const slot of draggedSlots) {
+          slot.style.transform = "";
+        }
+        draggedSlots = [];
+      };
+      const endSnap = () => {
+        window.setTimeout(() => lightbox.classList.remove("is-snapping"), 480);
+      };
+
+      stage.addEventListener("touchstart", event => {
+        if (event.touches.length !== 1) return;
+        const touch = event.touches[0];
+        dragStartX = touch.clientX;
+        dragStartY = touch.clientY;
+        dragDelta = 0;
+        dragging = true;
+        dragAxis = null;
+        stageWidth = stage.clientWidth || lightbox.clientWidth || 1;
+        draggedSlots = [prevSlot, currentSlot, nextSlot].filter(Boolean);
+      }, { passive: true });
+
+      stage.addEventListener("touchmove", event => {
+        if (!dragging || event.touches.length !== 1) return;
+        const touch = event.touches[0];
+        const dx = touch.clientX - dragStartX;
+        const dy = touch.clientY - dragStartY;
+        if (dragAxis === null) {
+          if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+          dragAxis = Math.abs(dx) > Math.abs(dy) ? "x" : "y";
+          if (dragAxis === "x") lightbox.classList.add("is-dragging");
+          else { dragging = false; releaseDrag(); return; }
+        }
+        if (dragAxis !== "x") return;
+        event.preventDefault();
+        dragDelta = dx;
+        applyDrag(dx);
+      }, { passive: false });
+
+      const finishDrag = event => {
+        if (!dragging) return;
+        dragging = false;
+        if (dragAxis !== "x") { releaseDrag(); return; }
+        // Suppress the synthetic click that follows a real drag.
+        if (Math.abs(dragDelta) > 6 && event.cancelable) event.preventDefault();
+        lightbox.classList.remove("is-dragging");
+        lightbox.classList.add("is-snapping");
+        const threshold = Math.max(44, stageWidth * 0.18);
+        const delta = dragDelta;
+        releaseDrag();
+        if (delta <= -threshold) go(1);
+        else if (delta >= threshold) go(-1);
+        endSnap();
+      };
+
+      stage.addEventListener("touchend", finishDrag, { passive: false });
+      stage.addEventListener("touchcancel", () => {
+        if (!dragging && !draggedSlots.length) return;
+        dragging = false;
+        dragAxis = null;
+        lightbox.classList.remove("is-dragging");
+        lightbox.classList.add("is-snapping");
+        releaseDrag();
+        endSnap();
+      });
     }
   }
 

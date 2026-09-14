@@ -433,6 +433,8 @@ body.lightbox-open {
 .lightbox {
   --lb-transition: 780ms;
   --lb-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --lb-snap: 480ms;
+  --lb-snap-ease: cubic-bezier(0.25, 0.9, 0.28, 1);
   position: fixed;
   inset: 0;
   z-index: 100;
@@ -457,6 +459,7 @@ body.lightbox-open {
   position: relative;
   min-height: 0;
   z-index: 1;
+  touch-action: pan-y;
 }
 
 .lightbox__slide {
@@ -469,12 +472,24 @@ body.lightbox-open {
   justify-content: center;
   padding: clamp(10px, 2vh, 24px) 1.5%;
   pointer-events: none;
-  will-change: left, right, opacity, filter;
+  will-change: left, right, opacity, filter, transform;
   transition:
     left var(--lb-transition) var(--lb-ease),
     right var(--lb-transition) var(--lb-ease),
     opacity var(--lb-transition) var(--lb-ease),
-    filter var(--lb-transition) var(--lb-ease);
+    filter var(--lb-transition) var(--lb-ease),
+    transform var(--lb-transition) var(--lb-ease);
+}
+
+/* While a finger is down the slides track the drag 1:1 (no easing). */
+.lightbox.is-dragging .lightbox__slide {
+  transition: none;
+}
+
+/* On release, a shorter medium-light snap settles the nearest image. */
+.lightbox.is-snapping .lightbox__slide {
+  transition-duration: var(--lb-snap);
+  transition-timing-function: var(--lb-snap-ease);
 }
 
 .lightbox__slide-img {
@@ -653,7 +668,7 @@ body.lightbox-open {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .lightbox { --lb-transition: 200ms; }
+  .lightbox { --lb-transition: 200ms; --lb-snap: 160ms; }
 }
 
 .about-page {
@@ -1379,19 +1394,16 @@ body.lightbox-open {
 
 @media (max-width: 700px) {
   .lightbox {
-    padding: clamp(20px, 5vw, 32px) clamp(52px, 10vw, 84px);
+    padding: clamp(20px, 5vw, 32px) clamp(16px, 5vw, 40px);
   }
-  .lightbox__slide.is-current {
-    left: 0;
-    right: 0;
-  }
-  .lightbox__slide.is-prev,
-  .lightbox__slide.is-next {
-    opacity: 0;
-    pointer-events: none;
-  }
-  .lightbox__slide.is-prev { left: -60%; right: 130%; }
-  .lightbox__slide.is-next { left: 130%; right: -60%; }
+  /* Full-width, edge-to-edge neighbors so dragging reveals them cleanly. */
+  .lightbox__slide.is-current { left: 0; right: 0; }
+  .lightbox__slide.is-prev { left: -100%; right: 100%; opacity: 1; }
+  .lightbox__slide.is-next { left: 100%; right: -100%; opacity: 1; }
+  .lightbox__slide.is-exit-left { left: -100%; right: 100%; }
+  .lightbox__slide.is-exit-right { left: 100%; right: -100%; }
+  .lightbox__slide.is-enter-left { left: -100%; right: 100%; }
+  .lightbox__slide.is-enter-right { left: 100%; right: -100%; }
   .lightbox__nav {
     width: 44px;
     height: 44px;

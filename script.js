@@ -352,8 +352,50 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         draggedSlots = [];
       };
+      const SNAP_MS = 480; // keep in sync with --lb-snap
       const endSnap = () => {
-        window.setTimeout(() => lightbox.classList.remove("is-snapping"), 480);
+        window.setTimeout(() => lightbox.classList.remove("is-snapping"), SNAP_MS + 40);
+      };
+
+      // Snap back to the current image when the drag didn't cross the threshold.
+      const snapBack = () => {
+        lightbox.classList.remove("is-dragging");
+        lightbox.classList.add("is-snapping");
+        releaseDrag();
+        endSnap();
+      };
+
+      // Navigate one image with a FLIP so ONLY transform animates on release.
+      // Animating left/right (main-thread layout) alongside transform (compositor)
+      // is what made fast drags vibrate; here the class swap is applied instantly
+      // and the settle is a single composited transform that just decelerates.
+      const snapNavigate = direction => {
+        const slots = draggedSlots.slice();
+        const firstLeft = new Map();
+        for (const slot of slots) firstLeft.set(slot, slot.getBoundingClientRect().left);
+
+        // FIRST is captured; apply the class swap instantly with no transition.
+        lightbox.classList.add("is-instant");
+        lightbox.classList.remove("is-dragging");
+        for (const slot of slots) slot.style.transform = "";
+        go(direction);
+
+        // INVERT: offset the surviving slots back to where the finger left them.
+        const active = [prevSlot, currentSlot, nextSlot].filter(Boolean);
+        for (const slot of active) {
+          if (!firstLeft.has(slot)) { slot.style.transform = ""; continue; }
+          const dxInv = firstLeft.get(slot) - slot.getBoundingClientRect().left;
+          slot.style.transform = `translateX(${dxInv}px)`;
+        }
+        void lightbox.offsetWidth;
+        lightbox.classList.remove("is-instant");
+        lightbox.classList.add("is-snapping");
+        // PLAY: settle every slot to its resting spot via transform alone.
+        requestAnimationFrame(() => {
+          for (const slot of active) slot.style.transform = "";
+        });
+        draggedSlots = [];
+        endSnap();
       };
 
       stage.addEventListener("touchstart", event => {
@@ -391,14 +433,11 @@ document.addEventListener("DOMContentLoaded", () => {
         if (dragAxis !== "x") { releaseDrag(); return; }
         // Suppress the synthetic click that follows a real drag.
         if (Math.abs(dragDelta) > 6 && event.cancelable) event.preventDefault();
-        lightbox.classList.remove("is-dragging");
-        lightbox.classList.add("is-snapping");
         const threshold = Math.max(44, stageWidth * 0.18);
         const delta = dragDelta;
-        releaseDrag();
-        if (delta <= -threshold) go(1);
-        else if (delta >= threshold) go(-1);
-        endSnap();
+        if (slides.length > 1 && delta <= -threshold) snapNavigate(1);
+        else if (slides.length > 1 && delta >= threshold) snapNavigate(-1);
+        else snapBack();
       };
 
       stage.addEventListener("touchend", finishDrag, { passive: false });
@@ -406,10 +445,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!dragging && !draggedSlots.length) return;
         dragging = false;
         dragAxis = null;
-        lightbox.classList.remove("is-dragging");
-        lightbox.classList.add("is-snapping");
-        releaseDrag();
-        endSnap();
+        snapBack();
       });
     }
   }

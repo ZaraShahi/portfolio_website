@@ -492,6 +492,23 @@ body.lightbox-open {
   transition-timing-function: var(--lb-snap-ease);
 }
 
+/* Used for the instant class-swap in the drag FLIP (no visible animation). */
+.lightbox.is-instant .lightbox__slide {
+  transition: none !important;
+}
+
+/* Touch devices swipe a full-width carousel so the drag snap settles with a
+   single composited transform (uniform slide width, no left/right animation). */
+@media (hover: none) {
+  .lightbox__slide.is-current { left: 0; right: 0; }
+  .lightbox__slide.is-prev { left: -100%; right: 100%; opacity: 1; filter: none; }
+  .lightbox__slide.is-next { left: 100%; right: -100%; opacity: 1; filter: none; }
+  .lightbox__slide.is-exit-left { left: -100%; right: 100%; }
+  .lightbox__slide.is-exit-right { left: 100%; right: -100%; }
+  .lightbox__slide.is-enter-left { left: -100%; right: 100%; }
+  .lightbox__slide.is-enter-right { left: 100%; right: -100%; }
+}
+
 .lightbox__slide-img {
   max-width: 100%;
   max-height: 100%;

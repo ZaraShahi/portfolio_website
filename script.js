@@ -188,7 +188,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const TRANSITION_MS = 780;
       let currentIndex = 0;
-      let transitioning = false;
       let prevSlot;
       let currentSlot;
       let nextSlot;
@@ -237,9 +236,11 @@ document.addEventListener("DOMContentLoaded", () => {
         updateCaption();
       };
 
+      // Navigation is interruptible: each call resets the three slots to their
+      // canonical prev/current/next state synchronously, so tapping mid-slide
+      // just retargets the in-flight CSS transitions from wherever they are.
       const go = direction => {
-        if (transitioning || slides.length < 2 || direction === 0) return;
-        transitioning = true;
+        if (slides.length < 2 || direction === 0) return;
         currentIndex = idxAt(direction);
         updateCaption();
         warmNeighbors(currentIndex);
@@ -260,7 +261,6 @@ document.addEventListener("DOMContentLoaded", () => {
           nextSlot = entering;
           setTimeout(() => {
             exiting.remove();
-            transitioning = false;
           }, TRANSITION_MS + 60);
         } else {
           const exiting = nextSlot;
@@ -278,7 +278,6 @@ document.addEventListener("DOMContentLoaded", () => {
           prevSlot = entering;
           setTimeout(() => {
             exiting.remove();
-            transitioning = false;
           }, TRANSITION_MS + 60);
         }
       };
@@ -296,7 +295,6 @@ document.addEventListener("DOMContentLoaded", () => {
       const closeLightbox = () => {
         lightbox.classList.remove("is-open");
         document.body.classList.remove("lightbox-open");
-        transitioning = false;
         setTimeout(() => {
           stage.innerHTML = "";
           preloadCache.clear();

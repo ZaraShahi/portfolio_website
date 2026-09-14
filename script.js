@@ -1,4 +1,25 @@
 document.addEventListener("DOMContentLoaded", () => {
+  // GoatCounter: count in-page section navigation (hash changes) as pageviews.
+  // count.js loads async and only records the initial path, so hash sections
+  // like #artworks/#about/#cv/#contact would otherwise never be captured.
+  const countHash = () => {
+    if (!window.location.hash) return;
+    const send = (tries = 0) => {
+      if (window.goatcounter && typeof window.goatcounter.count === "function") {
+        window.goatcounter.count({
+          path: window.location.pathname + window.location.hash,
+          title: `${document.title} ${window.location.hash}`,
+          event: false,
+        });
+      } else if (tries < 50) {
+        window.setTimeout(() => send(tries + 1), 100);
+      }
+    };
+    send();
+  };
+  window.addEventListener("hashchange", countHash);
+  countHash();
+
   document.querySelectorAll("a[href]").forEach(link => {
     link.addEventListener("click", event => {
       if (

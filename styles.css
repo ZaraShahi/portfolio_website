@@ -426,6 +426,77 @@ button.portfolio-tile--image:focus-visible {
   outline-offset: 4px;
 }
 
+/* Single-row horizontal artwork scroller with side arrows */
+.portfolio-carousel {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 24px var(--page-gutter) 96px;
+}
+
+.portfolio-carousel .portfolio-grid--carousel {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  gap: 22px;
+  padding: 8px 4px;
+  margin: 0;
+  max-width: none;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.portfolio-grid--carousel::-webkit-scrollbar {
+  display: none;
+}
+
+.portfolio-grid--carousel .portfolio-tile {
+  flex: 0 0 clamp(240px, 24vw, 320px);
+  scroll-snap-align: start;
+}
+
+.portfolio-carousel__arrow {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  border: 1px solid rgba(64, 52, 42, 0.2);
+  border-radius: 50%;
+  background: #fffaf3;
+  color: var(--ink, #40342a);
+  font-size: 1.7rem;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(88, 63, 41, 0.14);
+  transition: background 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
+}
+
+.portfolio-carousel__arrow:hover {
+  background: #f6efe6;
+  transform: scale(1.06);
+}
+
+.portfolio-carousel__arrow:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.portfolio-carousel__arrow[disabled] {
+  opacity: 0.35;
+  cursor: default;
+  transform: none;
+  box-shadow: none;
+}
+
 body.lightbox-open {
   overflow: hidden;
 }
@@ -745,7 +816,7 @@ body.lightbox-open {
 
 .about-text-row {
   display: grid;
-  grid-template-columns: minmax(0, 520px) minmax(220px, 350px);
+  grid-template-columns: minmax(0, 520px) minmax(220px, 450px);
   gap: clamp(20px, 3vw, 42px);
   align-items: stretch;
 }
@@ -779,9 +850,8 @@ body.lightbox-open {
 .about-image img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
   object-position: center;
-  transform: translateY(12px);
 }
 
 .statement {

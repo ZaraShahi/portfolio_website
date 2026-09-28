@@ -122,6 +122,38 @@ document.addEventListener("DOMContentLoaded", () => {
     card.addEventListener("mouseleave", stopVideo);
   });
 
+  const carousels = document.querySelectorAll(".portfolio-carousel");
+  carousels.forEach(carousel => {
+    const track = carousel.querySelector(".portfolio-grid--carousel");
+    const prev = carousel.querySelector(".portfolio-carousel__arrow--prev");
+    const next = carousel.querySelector(".portfolio-carousel__arrow--next");
+    if (!track || !prev || !next) return;
+
+    const stepSize = () => {
+      const tile = track.querySelector(".portfolio-tile");
+      if (!tile) return track.clientWidth * 0.8;
+      const gap = parseFloat(getComputedStyle(track).columnGap) || 0;
+      return tile.getBoundingClientRect().width + gap;
+    };
+
+    const updateArrows = () => {
+      const maxScroll = track.scrollWidth - track.clientWidth - 1;
+      prev.disabled = track.scrollLeft <= 0;
+      next.disabled = track.scrollLeft >= maxScroll;
+    };
+
+    prev.addEventListener("click", () => {
+      track.scrollBy({ left: -stepSize(), behavior: "smooth" });
+    });
+    next.addEventListener("click", () => {
+      track.scrollBy({ left: stepSize(), behavior: "smooth" });
+    });
+
+    track.addEventListener("scroll", updateArrows, { passive: true });
+    window.addEventListener("resize", updateArrows);
+    updateArrows();
+  });
+
   const lightboxTriggers = document.querySelectorAll(".portfolio-tile--image");
   if (lightboxTriggers.length) {
     // Flatten every tile's slide list into one continuous gallery.

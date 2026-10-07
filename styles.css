@@ -442,14 +442,19 @@ button.portfolio-tile--image:focus-visible {
   flex: 1 1 auto;
   min-width: 0;
   gap: 22px;
-  padding: 8px 4px;
-  margin: 0;
+  /* Scroll containers clip both axes, so leave room for the tile shadows. */
+  padding: 48px 48px 64px;
+  margin: -40px -44px -56px;
   max-width: none;
   overflow-x: auto;
   scroll-behavior: smooth;
   scroll-snap-type: x mandatory;
+  scroll-padding-inline: 48px;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
+  /* Feather partially visible tiles and their shadows at the scroll edges. */
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 44px, #000 calc(100% - 44px), transparent);
+  mask-image: linear-gradient(to right, transparent, #000 44px, #000 calc(100% - 44px), transparent);
 }
 
 .portfolio-grid--carousel::-webkit-scrollbar {
@@ -462,6 +467,8 @@ button.portfolio-tile--image:focus-visible {
 }
 
 .portfolio-carousel__arrow {
+  position: relative;
+  z-index: 1;
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;

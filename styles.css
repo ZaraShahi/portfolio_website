@@ -438,19 +438,18 @@ button.portfolio-tile--image:focus-visible {
 }
 
 .portfolio-carousel .portfolio-grid--carousel {
-  --carousel-tile-width: clamp(240px, 24vw, 320px);
+  --carousel-tile-width: calc((100% - 44px) / 3);
   display: flex;
   flex: 1 1 auto;
   min-width: 0;
   gap: 22px;
-  /* Scroll containers clip both axes, so leave room for the tile shadows. */
-  padding: 48px 72px 64px;
-  margin: -40px -68px -56px;
+  /* Preserve vertical shadow room without exposing additional side tiles. */
+  padding: 48px 0 64px;
+  margin: -40px 0 -56px;
   max-width: none;
   overflow-x: auto;
   scroll-behavior: smooth;
   scroll-snap-type: x mandatory;
-  scroll-padding-inline: 72px;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
 }
@@ -461,7 +460,20 @@ button.portfolio-tile--image:focus-visible {
 
 .portfolio-grid--carousel .portfolio-tile {
   flex: 0 0 var(--carousel-tile-width);
+  min-width: 0;
   scroll-snap-align: start;
+}
+
+@media (max-width: 900px) {
+  .portfolio-carousel .portfolio-grid--carousel {
+    --carousel-tile-width: calc((100% - 22px) / 2);
+  }
+}
+
+@media (max-width: 560px) {
+  .portfolio-carousel .portfolio-grid--carousel {
+    --carousel-tile-width: 100%;
+  }
 }
 
 .portfolio-carousel__arrow {

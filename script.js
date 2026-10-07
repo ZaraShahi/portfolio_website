@@ -223,6 +223,66 @@ document.addEventListener("DOMContentLoaded", () => {
       let prevSlot;
       let currentSlot;
       let nextSlot;
+      const zoomLevels = [1, 1.5, 2];
+      let zoomStep = 0;
+      let panX = 0;
+      let panY = 0;
+      let panGesture = null;
+      let suppressClickUntil = 0;
+
+      const updatePan = () => {
+        const img = currentSlot.querySelector("img");
+        const excess = zoomLevels[zoomStep] - 1;
+        const maxX = img.offsetWidth * excess / 2;
+        const maxY = img.offsetHeight * excess / 2;
+        panX = Math.max(-maxX, Math.min(maxX, panX));
+        panY = Math.max(-maxY, Math.min(maxY, panY));
+        img.style.setProperty("--image-pan-x", `${panX}px`);
+        img.style.setProperty("--image-pan-y", `${panY}px`);
+      };
+
+      const finishPan = () => {
+        if (!panGesture) return;
+        const { img, pointerId, moved } = panGesture;
+        panGesture = null;
+        img.classList.remove("is-panning");
+        if (img.hasPointerCapture(pointerId)) img.releasePointerCapture(pointerId);
+        if (moved) suppressClickUntil = performance.now() + 400;
+      };
+
+      const updateZoom = () => {
+        const img = currentSlot.querySelector("img");
+        const nextZoom = zoomLevels[(zoomStep + 1) % zoomLevels.length] * 100;
+        img.style.setProperty("--image-zoom", zoomLevels[zoomStep]);
+        img.setAttribute("role", "button");
+        img.tabIndex = 0;
+        img.setAttribute("aria-label", `${img.alt}. Zoom to ${nextZoom}%`);
+        img.classList.toggle("is-max-zoom", zoomStep === zoomLevels.length - 1);
+        lightbox.classList.toggle("is-zoomed", zoomStep > 0);
+        updatePan();
+      };
+
+      const resetZoom = () => {
+        finishPan();
+        zoomStep = 0;
+        panX = 0;
+        panY = 0;
+        lightbox.classList.remove("is-zoomed");
+        if (!currentSlot) return;
+        const img = currentSlot.querySelector("img");
+        img.style.removeProperty("--image-zoom");
+        img.style.removeProperty("--image-pan-x");
+        img.style.removeProperty("--image-pan-y");
+        img.classList.remove("is-max-zoom");
+        img.removeAttribute("role");
+        img.removeAttribute("tabindex");
+        img.removeAttribute("aria-label");
+      };
+
+      const cycleZoom = () => {
+        zoomStep = (zoomStep + 1) % zoomLevels.length;
+        updateZoom();
+      };
 
       const idxAt = offset => {
         const n = slides.length;
@@ -235,6 +295,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const img = document.createElement("img");
         img.className = "lightbox__slide-img";
         img.decoding = "async";
+        img.draggable = false;
         fig.appendChild(img);
         return fig;
       };
@@ -265,6 +326,8 @@ document.addEventListener("DOMContentLoaded", () => {
         fillSlot(currentSlot, idxAt(0));
         fillSlot(nextSlot, idxAt(1));
         stage.append(prevSlot, currentSlot, nextSlot);
+        zoomStep = 0;
+        updateZoom();
         updateCaption();
       };
 
@@ -273,6 +336,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // just retargets the in-flight CSS transitions from wherever they are.
       const go = direction => {
         if (slides.length < 2 || direction === 0) return;
+        resetZoom();
         currentIndex = idxAt(direction);
         updateCaption();
         warmNeighbors(currentIndex);
@@ -312,6 +376,7 @@ document.addEventListener("DOMContentLoaded", () => {
             exiting.remove();
           }, TRANSITION_MS + 60);
         }
+        updateZoom();
       };
 
       const openLightbox = trigger => {
@@ -325,6 +390,7 @@ document.addEventListener("DOMContentLoaded", () => {
       };
 
       const closeLightbox = () => {
+        resetZoom();
         lightbox.classList.remove("is-open");
         document.body.classList.remove("lightbox-open");
         setTimeout(() => {
@@ -337,10 +403,58 @@ document.addEventListener("DOMContentLoaded", () => {
       nextButton?.addEventListener("click", () => go(1));
 
       stage.addEventListener("click", event => {
+        if (performance.now() < suppressClickUntil) return;
         const slot = event.target.closest?.(".lightbox__slide");
         if (!slot) return;
         if (slot.classList.contains("is-prev")) go(-1);
         else if (slot.classList.contains("is-next")) go(1);
+        else if (slot === currentSlot && event.target.matches(".lightbox__slide-img")) cycleZoom();
+      });
+
+      stage.addEventListener("pointerdown", event => {
+        if (zoomStep === 0 || !event.isPrimary || event.button !== 0 ||
+            event.target !== currentSlot.querySelector("img")) return;
+        const img = event.target;
+        panGesture = {
+          img,
+          pointerId: event.pointerId,
+          startX: event.clientX,
+          startY: event.clientY,
+          originX: panX,
+          originY: panY,
+          moved: false,
+        };
+        img.setPointerCapture(event.pointerId);
+      });
+
+      stage.addEventListener("pointermove", event => {
+        if (!panGesture || event.pointerId !== panGesture.pointerId) return;
+        const dx = event.clientX - panGesture.startX;
+        const dy = event.clientY - panGesture.startY;
+        if (!panGesture.moved && Math.hypot(dx, dy) < 6) return;
+        panGesture.moved = true;
+        panGesture.img.classList.add("is-panning");
+        panX = panGesture.originX + dx;
+        panY = panGesture.originY + dy;
+        updatePan();
+      });
+
+      const endPanPointer = event => {
+        if (panGesture && event.pointerId === panGesture.pointerId) finishPan();
+      };
+      stage.addEventListener("pointerup", endPanPointer);
+      stage.addEventListener("pointercancel", endPanPointer);
+      stage.addEventListener("lostpointercapture", endPanPointer);
+      window.addEventListener("resize", () => {
+        if (lightbox.classList.contains("is-open")) updatePan();
+      });
+
+      stage.addEventListener("keydown", event => {
+        if (event.target !== currentSlot?.querySelector("img")) return;
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          cycleZoom();
+        }
       });
 
       lightboxTriggers.forEach(trigger => {
@@ -431,7 +545,7 @@ document.addEventListener("DOMContentLoaded", () => {
       };
 
       stage.addEventListener("touchstart", event => {
-        if (event.touches.length !== 1) return;
+        if (zoomStep > 0 || event.touches.length !== 1) return;
         const touch = event.touches[0];
         dragStartX = touch.clientX;
         dragStartY = touch.clientY;

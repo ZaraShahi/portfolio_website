@@ -438,6 +438,7 @@ button.portfolio-tile--image:focus-visible {
 }
 
 .portfolio-carousel .portfolio-grid--carousel {
+  --carousel-tile-width: clamp(240px, 24vw, 320px);
   display: flex;
   flex: 1 1 auto;
   min-width: 0;
@@ -452,9 +453,6 @@ button.portfolio-tile--image:focus-visible {
   scroll-padding-inline: 72px;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
-  /* Feather partially visible tiles and their shadows at the scroll edges. */
-  -webkit-mask-image: linear-gradient(to right, transparent, #000 44px, #000 calc(100% - 44px), transparent);
-  mask-image: linear-gradient(to right, transparent, #000 44px, #000 calc(100% - 44px), transparent);
 }
 
 .portfolio-grid--carousel::-webkit-scrollbar {
@@ -462,7 +460,7 @@ button.portfolio-tile--image:focus-visible {
 }
 
 .portfolio-grid--carousel .portfolio-tile {
-  flex: 0 0 clamp(240px, 24vw, 320px);
+  flex: 0 0 var(--carousel-tile-width);
   scroll-snap-align: start;
 }
 
@@ -602,7 +600,38 @@ body.lightbox-open {
     drop-shadow(3px 6px 5px rgba(70, 50, 30, 0.18))
     drop-shadow(3px 20px 10px rgba(50, 32, 15, 0.24))
     drop-shadow(3px 40px 20px rgba(28, 18, 8, 0.32));
-  transition: box-shadow var(--lb-transition) var(--lb-ease);
+  transform: translate(var(--image-pan-x, 0px), var(--image-pan-y, 0px)) scale(var(--image-zoom, 1));
+  transition:
+    transform 300ms var(--lb-ease),
+    box-shadow var(--lb-transition) var(--lb-ease);
+}
+
+.lightbox__slide.is-current .lightbox__slide-img {
+  pointer-events: auto;
+  cursor: zoom-in;
+}
+
+.lightbox__slide.is-current .lightbox__slide-img.is-max-zoom {
+  cursor: zoom-out;
+}
+
+.lightbox.is-zoomed .lightbox__stage {
+  touch-action: none;
+}
+
+.lightbox.is-zoomed .lightbox__slide.is-current .lightbox__slide-img {
+  cursor: grab;
+  user-select: none;
+}
+
+.lightbox.is-zoomed .lightbox__slide.is-current .lightbox__slide-img.is-panning {
+  cursor: grabbing;
+  transition: none;
+}
+
+.lightbox__slide-img:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 4px;
 }
 
 .lightbox__slide.is-current {
@@ -764,6 +793,7 @@ body.lightbox-open {
 
 @media (prefers-reduced-motion: reduce) {
   .lightbox { --lb-transition: 200ms; --lb-snap: 160ms; }
+  .lightbox__slide-img { transition: none; }
 }
 
 .about-page {

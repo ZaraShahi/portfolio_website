@@ -443,13 +443,13 @@ button.portfolio-tile--image:focus-visible {
   min-width: 0;
   gap: 22px;
   /* Scroll containers clip both axes, so leave room for the tile shadows. */
-  padding: 48px 48px 64px;
-  margin: -40px -44px -56px;
+  padding: 48px 72px 64px;
+  margin: -40px -68px -56px;
   max-width: none;
   overflow-x: auto;
   scroll-behavior: smooth;
   scroll-snap-type: x mandatory;
-  scroll-padding-inline: 48px;
+  scroll-padding-inline: 72px;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
   /* Feather partially visible tiles and their shadows at the scroll edges. */

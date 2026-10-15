@@ -1,4 +1,23 @@
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  const sectionSlots = document.querySelectorAll("[data-section-src]");
+  await Promise.all(Array.from(sectionSlots, async slot => {
+    const source = slot.dataset.sectionSrc;
+    try {
+      const response = await fetch(source);
+      if (!response.ok) {
+        throw new Error(`Could not load ${source}: HTTP ${response.status}`);
+      }
+      slot.innerHTML = await response.text();
+    } catch (error) {
+      console.error(`Failed to load page section: ${source}`, error);
+      const message = document.createElement("p");
+      message.className = "section-message";
+      message.setAttribute("role", "alert");
+      message.textContent = `Unable to load ${source}. Please refresh the page to try again.`;
+      slot.replaceChildren(message);
+    }
+  }));
+
   // GoatCounter: count in-page section navigation (hash changes) as pageviews.
   // count.js loads async and only records the initial path, so hash sections
   // like #artworks/#about/#cv/#contact would otherwise never be captured.
@@ -93,6 +112,17 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener("resize", updateNavHeight);
   window.addEventListener("load", updateNavHeight);
 
+  // Fragment targets may not exist when the browser first processes the URL.
+  if (sectionSlots.length && window.location.hash) {
+    const target = document.getElementById(window.location.hash.slice(1));
+    const revealTarget = target?.closest(".reveal");
+    if (revealTarget) {
+      revealTarget.classList.add("visible");
+      observer.unobserve(revealTarget);
+    }
+    target?.scrollIntoView({ behavior: "instant" });
+  }
+
   const hoverVideos = document.querySelectorAll(".card__media--video video");
   hoverVideos.forEach(video => {
     const card = video.closest(".card");
@@ -156,20 +186,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const lightboxTriggers = document.querySelectorAll(".portfolio-tile--image");
   if (lightboxTriggers.length) {
-    // Flatten every tile's slide list into one continuous gallery.
-    const slides = [];
+    // Keep each medium's slide list independent while sharing one lightbox.
+    const galleries = new Map();
+    let slides = [];
     const triggerStartIndex = new WeakMap();
+    const triggerGallery = new WeakMap();
     lightboxTriggers.forEach(trigger => {
       const urls = (trigger.dataset.slides || "")
         .split("|")
         .map(u => u.trim())
         .filter(Boolean);
       if (!urls.length) return;
+      const gallery = trigger.closest(".portfolio-carousel");
+      if (!galleries.has(gallery)) galleries.set(gallery, []);
+      const gallerySlides = galleries.get(gallery);
       const caption = trigger.dataset.caption || "";
       const baseAlt = trigger.querySelector("img")?.alt || "";
-      triggerStartIndex.set(trigger, slides.length);
+      triggerStartIndex.set(trigger, gallerySlides.length);
+      triggerGallery.set(trigger, gallerySlides);
       urls.forEach((url, i) => {
-        slides.push({
+        gallerySlides.push({
           url,
           caption,
           alt: i === 0 ? baseAlt : `${baseAlt} detail ${i + 1}`,
@@ -177,7 +213,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     });
 
-    if (slides.length) {
+    if (galleries.size) {
       const lightbox = document.createElement("div");
       lightbox.className = "lightbox";
       lightbox.setAttribute("role", "dialog");
@@ -219,6 +255,7 @@ document.addEventListener("DOMContentLoaded", () => {
       };
 
       const TRANSITION_MS = 780;
+      let closeTimer = 0;
       let currentIndex = 0;
       let prevSlot;
       let currentSlot;
@@ -380,7 +417,14 @@ document.addEventListener("DOMContentLoaded", () => {
       };
 
       const openLightbox = trigger => {
-        const startIndex = triggerStartIndex.get(trigger) ?? 0;
+        const gallerySlides = triggerGallery.get(trigger);
+        const startIndex = triggerStartIndex.get(trigger);
+        if (!gallerySlides || startIndex === undefined) {
+          console.error("Artwork is missing its slide list.", trigger);
+          return;
+        }
+        window.clearTimeout(closeTimer);
+        slides = gallerySlides;
         currentIndex = startIndex;
         warmNeighbors(currentIndex);
         layoutInitial();
@@ -393,7 +437,8 @@ document.addEventListener("DOMContentLoaded", () => {
         resetZoom();
         lightbox.classList.remove("is-open");
         document.body.classList.remove("lightbox-open");
-        setTimeout(() => {
+        window.clearTimeout(closeTimer);
+        closeTimer = window.setTimeout(() => {
           stage.innerHTML = "";
           preloadCache.clear();
         }, 550);

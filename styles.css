@@ -1072,6 +1072,16 @@ body.lightbox-open {
   line-height: 1.2;
 }
 
+.cv-list__group h4 {
+  margin: 6px 0 0;
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: #7b7167;
+  line-height: 1.2;
+}
+
 .cv-list__group p {
   margin: 0;
   font-size: 0.95rem;

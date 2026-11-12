@@ -349,6 +349,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (lightboxTriggers.length) {
     // Keep each medium's slide list independent while sharing one lightbox.
     const galleries = new Map();
+    // Google Drive video: a "drive.google.com/file/d/<id>/preview" slide plays in
+    // Drive's own player (Drive converts the video for every browser).
+    const driveVideoId = url => url.match(/drive\.google\.com\/file\/d\/([^/?#]+)\/preview/)?.[1] || "";
     let slides = [];
     const triggerStartIndex = new WeakMap();
     const triggerGallery = new WeakMap();
@@ -366,10 +369,16 @@ document.addEventListener("DOMContentLoaded", async () => {
       triggerStartIndex.set(trigger, gallerySlides.length);
       triggerGallery.set(trigger, gallerySlides);
       urls.forEach((url, i) => {
+        const videoId = driveVideoId(url);
+        const video = Boolean(videoId);
         gallerySlides.push({
           url,
+          video,
+          // Drive's still of the video, shown while the slide is beside the current one
+          poster: video ? `https://drive.google.com/thumbnail?id=${videoId}&sz=s0` : "",
+          ratio: trigger.dataset.videoRatio || "16 / 9",
           caption,
-          alt: i === 0 ? baseAlt : `${baseAlt} detail ${i + 1}`,
+          alt: i === 0 ? baseAlt : `${baseAlt} ${video ? "video" : `detail ${i + 1}`}`,
         });
       });
     });
@@ -404,6 +413,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (img) return img;
         img = new Image();
         img.decoding = "async";
+        img.referrerPolicy = "no-referrer"; // Google Drive refuses images requested with another site as referrer
         img.src = url;
         preloadCache.set(url, img);
         return img;
@@ -411,7 +421,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       const warmNeighbors = idx => {
         const n = slides.length;
         for (let d = -2; d <= 2; d++) {
-          preload(slides[((idx + d) % n + n) % n].url);
+          const slide = slides[((idx + d) % n + n) % n];
+          preload(slide.video ? slide.poster : slide.url);
         }
       };
 
@@ -493,6 +504,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const img = document.createElement("img");
         img.className = "lightbox__slide-img";
         img.decoding = "async";
+        img.referrerPolicy = "no-referrer";
         img.draggable = false;
         fig.appendChild(img);
         return fig;
@@ -501,9 +513,38 @@ document.addEventListener("DOMContentLoaded", async () => {
       const fillSlot = (slot, index) => {
         const data = slides[index];
         const img = slot.querySelector("img");
-        img.src = data.url;
+        let frame = slot.querySelector("iframe");
+        slot.classList.toggle("is-video", data.video);
+        if (data.video) {
+          // The still stays in the slot; the player is only loaded while the
+          // slide is current (see syncVideos).
+          img.src = data.poster;
+          if (!frame) {
+            frame = document.createElement("iframe");
+            frame.className = "lightbox__slide-video";
+            frame.allow = "autoplay; fullscreen; picture-in-picture";
+            frame.allowFullscreen = true;
+            slot.appendChild(frame);
+          }
+          frame.title = data.alt;
+          frame.dataset.src = data.url;
+          frame.style.setProperty("--video-ratio", data.ratio);
+        } else {
+          frame?.remove();
+          img.src = data.url;
+        }
         img.alt = data.alt;
         slot.dataset.index = String(index);
+      };
+
+      // Load the player on the current slide; unload it everywhere else so a
+      // video stops when you move on.
+      const syncVideos = () => {
+        stage.querySelectorAll("iframe.lightbox__slide-video").forEach(frame => {
+          const current = Boolean(currentSlot && currentSlot.contains(frame));
+          if (current && frame.getAttribute("src") !== frame.dataset.src) frame.src = frame.dataset.src;
+          else if (!current && frame.hasAttribute("src")) frame.removeAttribute("src");
+        });
       };
 
       const updateCaption = () => {
@@ -524,6 +565,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         fillSlot(currentSlot, idxAt(0));
         fillSlot(nextSlot, idxAt(1));
         stage.append(prevSlot, currentSlot, nextSlot);
+        syncVideos();
         zoomStep = 0;
         updateZoom();
         updateCaption();
@@ -574,6 +616,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             exiting.remove();
           }, TRANSITION_MS + 60);
         }
+        syncVideos();
         updateZoom();
       };
 
@@ -596,6 +639,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       const closeLightbox = () => {
         resetZoom();
+        stage.querySelectorAll("iframe.lightbox__slide-video").forEach(f => f.removeAttribute("src"));
         lightbox.classList.remove("is-open");
         document.body.classList.remove("lightbox-open");
         window.clearTimeout(closeTimer);

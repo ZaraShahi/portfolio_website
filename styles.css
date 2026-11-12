@@ -630,6 +630,59 @@ h2 {
   }
 }
 
+.portfolio-tile {
+  position: relative;
+}
+
+/* small label on tiles whose gallery includes a video */
+.portfolio-tile__badge {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px 5px 8px;
+  background: rgba(249, 245, 238, 0.86);
+  color: var(--fg);
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.portfolio-tile__badge::before {
+  content: "";
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 4px 0 4px 7px;
+  border-color: transparent transparent transparent currentColor;
+}
+
+/* Video slides in the gallery: beside the current slide they show Drive's
+   still; once current, the still makes way for Drive's player. */
+.lightbox__slide-video {
+  display: none;
+  height: 100%;
+  max-width: 100%;
+  aspect-ratio: var(--video-ratio, 16 / 9);
+  border: 0;
+  background: #000;
+  filter:
+    drop-shadow(3px 6px 5px rgba(70, 50, 30, 0.18))
+    drop-shadow(3px 20px 10px rgba(50, 32, 15, 0.24));
+}
+
+.lightbox__slide.is-video.is-current .lightbox__slide-img {
+  display: none;
+}
+
+.lightbox__slide.is-video.is-current .lightbox__slide-video {
+  display: block;
+  pointer-events: auto;
+}
+
 .portfolio-tile--image img {
   height: 100%;
   object-fit: cover;
@@ -680,6 +733,14 @@ button.portfolio-tile--image:focus-visible {
   flex: 0 0 var(--carousel-tile-width);
   min-width: 0;
   scroll-snap-align: start;
+}
+
+/* Desktop: a section with fewer than three artworks has its tiles centred
+   (they all fit, so nothing scrolls). */
+@media (min-width: 901px) {
+  .portfolio-carousel .portfolio-grid--carousel:not(:has(> .portfolio-tile:nth-of-type(3))) {
+    justify-content: center;
+  }
 }
 
 @media (max-width: 900px) {
@@ -2220,6 +2281,7 @@ body.lightbox-open {
 
 .home-section--artworks > .section-heading { --ribbon: url("assets/decor/ribbon-4.webp"); --ribbon-ratio: 11; }
 #weaving .artwork-section__heading { --ribbon: url("assets/decor/ribbon-3.webp"); --ribbon-ratio: 11.0429; --ribbon-x: -300px; }
+#installation .artwork-section__heading { --ribbon: url("assets/decor/ribbon-1.webp"); --ribbon-ratio: 12.4; --ribbon-x: 600px; }
 #photography .artwork-section__heading { --ribbon: url("assets/decor/ribbon-5.webp"); --ribbon-ratio: 9.5143; --ribbon-x: 200px; }
 .about-name { --ribbon: url("assets/decor/ribbon-1.webp"); --ribbon-ratio: 12.4; --ribbon-x: -500px; }
 .cv-section .section-heading { --ribbon: url("assets/decor/ribbon-2.webp"); --ribbon-ratio: 15.7214; --ribbon-x: 400px; }

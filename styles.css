@@ -661,17 +661,39 @@ h2 {
 }
 
 /* Video slides in the gallery: beside the current slide they show Drive's
-   still; once current, the still makes way for Drive's player. */
+   still; once current, the still makes way for Drive's player. The slide is a
+   size container so the player is sized from the video's shape (--video-w /
+   --video-h, set from data-video-ratio) and always fits inside it. */
+.lightbox__slide.is-video {
+  container-type: size;
+}
+
 .lightbox__slide-video {
+  /* the largest box of the video's shape that fits the slide... */
+  --fit-w: min(100cqw, 100cqh * var(--video-w, 16) / var(--video-h, 9));
   display: none;
-  height: 100%;
-  max-width: 100%;
-  aspect-ratio: var(--video-ratio, 16 / 9);
+  flex: 0 0 auto;
+  /* ...but never narrower than Drive's control bar needs (~340px), so a
+     portrait video on a phone gets slim side bars instead of cut-off controls;
+     on the narrowest phones it runs edge to edge, past the gallery's padding */
+  width: max(var(--fit-w), min(100vw, 360px));
+  height: calc(var(--fit-w) * var(--video-h, 9) / var(--video-w, 16));
   border: 0;
   background: #000;
   filter:
     drop-shadow(3px 6px 5px rgba(70, 50, 30, 0.18))
     drop-shadow(3px 20px 10px rgba(50, 32, 15, 0.24));
+}
+
+/* Phones: keep the player clear of the close button and nav arrows' tap area
+   at the top, and drop the shadow (it reads as a smudge at this size). */
+@media (max-width: 700px) {
+  .lightbox__slide.is-video {
+    padding: 52px 0 6px;
+  }
+  .lightbox__slide-video {
+    filter: none;
+  }
 }
 
 .lightbox__slide.is-video.is-current .lightbox__slide-img {

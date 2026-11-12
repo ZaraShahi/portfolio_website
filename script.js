@@ -528,7 +528,9 @@ document.addEventListener("DOMContentLoaded", async () => {
           }
           frame.title = data.alt;
           frame.dataset.src = data.url;
-          frame.style.setProperty("--video-ratio", data.ratio);
+          const [w, h] = data.ratio.split("/").map(n => parseFloat(n));
+          frame.style.setProperty("--video-w", w || 16);
+          frame.style.setProperty("--video-h", h || 9);
         } else {
           frame?.remove();
           img.src = data.url;

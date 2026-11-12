@@ -12,6 +12,10 @@
   --font-sans: "Manrope", "Helvetica Neue", sans-serif;
   --font-display: "Playfair Display", "Times New Roman", serif;
   --nav-height: 0px;
+  /* Vintage film grain over light backgrounds: soft, slightly blurred warm
+     specks plus a faint low-frequency mottle so the texture isn't uniform. */
+  --grain: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='480'%20height='480'%3E%3Cfilter%20id='f'%20x='0'%20y='0'%20width='100%25'%20height='100%25'%3E%3CfeTurbulence%20type='fractalNoise'%20baseFrequency='0.72'%20numOctaves='2'%20seed='7'%20stitchTiles='stitch'/%3E%3CfeGaussianBlur%20stdDeviation='0.45'/%3E%3CfeColorMatrix%20values='0%200%200%200%200.30%200%200%200%200%200.23%200%200%200%200%200.16%201.25%200%200%200%20-0.52'/%3E%3C/filter%3E%3Cfilter%20id='m'%20x='0'%20y='0'%20width='100%25'%20height='100%25'%3E%3CfeTurbulence%20type='fractalNoise'%20baseFrequency='0.006'%20numOctaves='3'%20seed='2'%20stitchTiles='stitch'/%3E%3CfeColorMatrix%20values='0%200%200%200%200.42%200%200%200%200%200.33%200%200%200%200%200.22%201.3%200%200%200%20-0.5'/%3E%3C/filter%3E%3Crect%20width='100%25'%20height='100%25'%20filter='url%28%23m%29'%20opacity='0.16'/%3E%3Crect%20width='100%25'%20height='100%25'%20filter='url%28%23f%29'%20opacity='0.26'/%3E%3C/svg%3E");
+  --grain-size: 480px 480px;
 }
 
 *,
@@ -28,7 +32,9 @@ html {
 body {
   margin: 0;
   font-family: var(--font-sans);
-  background: radial-gradient(140% 140% at 15% 15%, #fffdf7, #f5eee4 50%, #ebe1d4 100%);
+  background:
+    var(--grain) 0 0 / var(--grain-size),
+    radial-gradient(140% 140% at 15% 15%, #fffdf7, #f5eee4 50%, #ebe1d4 100%);
   color: var(--fg);
   line-height: 1.6;
   letter-spacing: 0.01em;
@@ -340,6 +346,193 @@ h2 {
 
 .home-page {
   margin-top: var(--nav-height, 0px);
+}
+
+/* ---------- Collapsible nav (home page, over the cover) ----------
+   --nav-expand runs 0 -> 1 as the cover name fades (set in script.js).
+   At 0 only a bare hamburger icon (light lines, no box) is visible in the
+   top-right corner; as it fades out, the full bar (background, brand and
+   links) fades in. */
+.nav--collapsible {
+  --nav-expand: 0;
+  --nav-tile: 64px;
+  --nav-content: clamp(0, (var(--nav-expand) - 0.3) / 0.7, 1);
+  --nav-burger: clamp(0, 1 - var(--nav-expand) / 0.4, 1);
+  background: transparent;
+  border-bottom-color: transparent;
+  backdrop-filter: none;
+}
+
+.nav--collapsible.nav--solid {
+  background: transparent;
+  border-bottom-color: transparent;
+}
+
+.nav--collapsible::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: rgba(249, 245, 238, 0.96);
+  border-bottom: 1px solid rgba(64, 52, 42, 0.12);
+  backdrop-filter: blur(14px);
+  opacity: var(--nav-expand);
+}
+
+.nav--collapsible .nav__brand,
+.nav--collapsible .nav__links {
+  opacity: var(--nav-content);
+}
+
+.nav--collapsible.nav--collapsed .nav__brand,
+.nav--collapsible.nav--collapsed .nav__links {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.nav__burger,
+.nav__drawer {
+  display: none;
+}
+
+.nav--collapsible .nav__burger {
+  display: grid;
+  place-items: center;
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: var(--nav-tile);
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #fbf4e6;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.55));
+  cursor: pointer;
+  opacity: var(--nav-burger);
+}
+
+.nav--collapsible:not(.nav--collapsed) .nav__burger {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.nav__burger-lines,
+.nav__burger-lines::before,
+.nav__burger-lines::after {
+  display: block;
+  width: 22px;
+  height: 1.6px;
+  background: currentColor;
+  border-radius: 2px;
+  transition: transform 0.25s ease, opacity 0.2s ease;
+}
+
+.nav__burger-lines {
+  position: relative;
+}
+
+.nav__burger-lines::before,
+.nav__burger-lines::after {
+  content: "";
+  position: absolute;
+  left: 0;
+}
+
+.nav__burger-lines::before { top: -7px; }
+.nav__burger-lines::after { top: 7px; }
+
+.nav--drawer-open .nav__burger-lines { background: transparent; }
+.nav--drawer-open .nav__burger-lines::before { transform: translateY(7px) rotate(45deg); }
+.nav--drawer-open .nav__burger-lines::after { transform: translateY(-7px) rotate(-45deg); }
+
+.nav--collapsible .nav__drawer:not([hidden]) {
+  display: grid;
+  gap: 4px;
+  position: absolute;
+  top: calc(100% - 6px);
+  right: var(--page-gutter);
+  min-width: 200px;
+  padding: 14px 20px 18px;
+  background: rgba(249, 245, 238, 0.97);
+  border-radius: 12px;
+  box-shadow: 0 18px 36px rgba(31, 26, 22, 0.18);
+  animation: navDrawerIn 0.2s ease;
+}
+
+.nav__drawer a {
+  padding: 8px 0;
+  font-size: 1rem;
+  border-bottom: 1px solid rgba(64, 52, 42, 0.1);
+}
+
+.nav__drawer a:last-child {
+  border-bottom: 0;
+}
+
+.nav__drawer a:hover,
+.nav__drawer a:focus-visible {
+  color: var(--accent);
+}
+
+@keyframes navDrawerIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* The cover sits under the (collapsed) nav, flush with the top of the page. */
+.home-page.home-page--cover {
+  margin-top: 0;
+}
+
+/* ---------- Cover ---------- */
+.cover {
+  position: relative;
+  width: 100%;
+  overflow: clip;
+  background: #120e0b;
+}
+
+.cover__image {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* The track spans the first 30% of the cover plus one viewport, so the
+   sticky name stays centred on screen until 30% of the cover has scrolled by. */
+.cover__track {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: calc(30% + 100vh);
+  pointer-events: none;
+}
+
+.cover__name-wrap {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--page-gutter);
+}
+
+.cover__name {
+  margin: 0;
+  /* Same type treatment as .nav__brand, scaled up. */
+  font-family: var(--font-sans);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: clamp(2rem, 6.5vw, 5.6rem);
+  letter-spacing: 0.08em;
+  line-height: 1.05;
+  text-align: center;
+  color: #fbf4e6;
+  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.55);
+  will-change: opacity;
 }
 
 .home-section {
@@ -1893,4 +2086,23 @@ body.lightbox-open {
   .portfolio-tile {
     box-shadow: 0 10px 20px rgba(88, 63, 41, 0.10);
   }
+}
+
+/* ---------- Vintage grain on the light page backgrounds ----------
+   Images (cover, artworks, lightbox) are left untouched. */
+.nav:not(.nav--collapsible),
+.nav--collapsible::before,
+.panel--light,
+.panel--dark,
+#contact,
+.home-section--artworks,
+.artwork-section__heading::before,
+.about-hero,
+.about-body,
+.statement,
+.statement__body,
+.cv-section,
+.footer {
+  background-image: var(--grain);
+  background-size: var(--grain-size);
 }

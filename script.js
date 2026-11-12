@@ -106,6 +106,71 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   };
 
+  // Cover: the name stays pinned (CSS sticky) for the first 30% of the cover,
+  // then fades out as the image continues to scroll. While the name is
+  // visible the nav is collapsed into a hamburger tile; it expands into the
+  // full bar in step with the name fading.
+  const cover = document.querySelector(".cover");
+  const coverName = cover?.querySelector(".cover__name");
+  const burger = nav?.querySelector(".nav__burger");
+  const drawer = nav?.querySelector(".nav__drawer");
+
+  const setDrawer = open => {
+    if (!burger || !drawer) return;
+    drawer.hidden = !open;
+    nav.classList.toggle("nav--drawer-open", open);
+    burger.setAttribute("aria-expanded", String(open));
+    burger.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+  };
+
+  if (burger && drawer) {
+    burger.addEventListener("click", () => setDrawer(drawer.hidden));
+    drawer.addEventListener("click", event => {
+      if (event.target.closest("a")) setDrawer(false);
+    });
+    document.addEventListener("click", event => {
+      if (!drawer.hidden && !nav.contains(event.target)) setDrawer(false);
+    });
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape" && !drawer.hidden) {
+        setDrawer(false);
+        burger.focus();
+      }
+    });
+  }
+
+  if (cover && coverName) {
+    let ticking = false;
+    const updateCover = () => {
+      ticking = false;
+      const rect = cover.getBoundingClientRect();
+      const scrolled = -rect.top;
+      const fadeStart = rect.height * 0.3;
+      const fadeLength = Math.max(rect.height * 0.08, 1);
+      const progress = Math.min(Math.max((scrolled - fadeStart) / fadeLength, 0), 1);
+      coverName.style.opacity = String(1 - progress);
+
+      if (nav?.classList.contains("nav--collapsible")) {
+        nav.style.setProperty("--nav-expand", progress.toFixed(4));
+        const collapsed = progress < 0.5;
+        nav.classList.toggle("nav--collapsed", collapsed);
+        if (!collapsed) setDrawer(false);
+      }
+    };
+    const requestCoverUpdate = () => {
+      if (!ticking) {
+        ticking = true;
+        window.requestAnimationFrame(updateCover);
+      }
+    };
+    updateCover();
+    window.addEventListener("scroll", requestCoverUpdate, { passive: true });
+    window.addEventListener("resize", requestCoverUpdate);
+    window.addEventListener("load", requestCoverUpdate);
+  } else if (nav?.classList.contains("nav--collapsible")) {
+    nav.classList.remove("nav--collapsible", "nav--collapsed");
+  }
+
   updateNavHeight();
   toggleNav();
   window.addEventListener("scroll", toggleNav, { passive: true });

@@ -14,14 +14,24 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;600&family=Playfair+Display:wght@600&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=modular-artworks" />
+  <link rel="stylesheet" href="styles.css?v=cover-font" />
   <script data-goatcounter="https://zar-shahi.goatcounter.com/count" data-goatcounter-settings='{"allow_local": true}'
     async src="//gc.zgo.at/count.js"></script>
 </head>
 
 <body>
-  <header class="nav">
+  <header class="nav nav--collapsible nav--collapsed">
     <a class="nav__brand" href="#top">Zara Shahi</a>
+    <button class="nav__burger" type="button" aria-label="Open menu" aria-expanded="false"
+      aria-controls="nav-drawer">
+      <span class="nav__burger-lines" aria-hidden="true"></span>
+    </button>
+    <nav class="nav__drawer" id="nav-drawer" aria-label="Menu" hidden>
+      <a href="#artworks">Artwork</a>
+      <a href="#about">About</a>
+      <a href="#cv">CV</a>
+      <a href="#contact">Contact</a>
+    </nav>
     <nav class="nav__links">
       <a href="#artworks">Artwork</a>
       <a href="#about">About</a>
@@ -30,8 +40,20 @@
     </nav>
   </header>
 
-  <main class="home-page">
+  <main class="home-page home-page--cover">
     <div id="top"></div>
+
+    <section class="cover" aria-label="In Between, by Zara Shahi">
+      <img class="cover__image" src="assets/in-between-cover-2400.jpg"
+        srcset="assets/in-between-cover-1200.jpg 1200w, assets/in-between-cover-2400.jpg 2400w" sizes="100vw"
+        width="2400" height="3600" alt="Zara Shahi beneath her suspended woven installation In Between"
+        fetchpriority="high" decoding="async" />
+      <div class="cover__track">
+        <div class="cover__name-wrap">
+          <p class="cover__name">Zara Shahi</p>
+        </div>
+      </div>
+    </section>
 
     <noscript>
       <p class="section-message">Please enable JavaScript to view the artwork, About, and CV sections.</p>
@@ -108,7 +130,7 @@
     </div>
   </footer>
 
-  <script src="script.js?v=modular-artworks"></script>
+  <script src="script.js?v=cover-font"></script>
 </body>
 
 </html>

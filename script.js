@@ -91,12 +91,19 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.querySelectorAll(".reveal").forEach(el => observer.observe(el));
 
   const nav = document.querySelector(".nav");
+  const stickyHeading = document.querySelector(".home-section--artworks > .section-heading");
   const updateNavHeight = () => {
     if (!nav) return;
     document.documentElement.style.setProperty(
       "--nav-height",
       `${nav.offsetHeight}px`
     );
+    if (stickyHeading) {
+      document.documentElement.style.setProperty(
+        "--sticky-heading-h",
+        `${stickyHeading.offsetHeight}px`
+      );
+    }
   };
   const toggleNav = () => {
     if (window.scrollY > 30) {

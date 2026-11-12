@@ -526,11 +526,11 @@ h2 {
   font-family: var(--font-sans);
   font-weight: 600;
   text-transform: uppercase;
-  font-size: clamp(2rem, 6.5vw, 5.6rem);
+  font-size: clamp(2rem, 4vw, 4rem);
   letter-spacing: 0.08em;
   line-height: 1.05;
   text-align: center;
-  color: #fbf4e6;
+  color: #faedd4;
   text-shadow: 0 2px 24px rgba(0, 0, 0, 0.55);
   will-change: opacity;
 }
@@ -563,7 +563,7 @@ h2 {
 .artwork-section__heading {
   max-width: var(--max-width);
   margin: 0 auto 12px;
-  padding: 0 var(--page-gutter);
+  padding: 12px var(--page-gutter);
   font-family: var(--font-sans);
   font-size: clamp(1rem, 1.5vw, 1.3rem);
   font-weight: 400;
@@ -575,8 +575,8 @@ h2 {
 .artwork-section__heading::before {
   content: "";
   position: absolute;
-  top: -50%;
-  bottom: -50%;
+  top: 0;
+  bottom: 0;
   left: 50%;
   transform: translateX(-50%);
   width: 100vw;
@@ -2105,4 +2105,70 @@ body.lightbox-open {
 .footer {
   background-image: var(--grain);
   background-size: var(--grain-size);
+}
+
+/* ---------- Sticky section headings ----------
+   Each main heading (Artwork, About, CV, Contact) pins under the nav while
+   its section is on screen and is pushed out by the next one. The artwork
+   sub-headings (Weaving, Photography) pin just below "Artwork".
+   --sticky-heading-h is measured in script.js. */
+.home-page {
+  overflow-x: clip;
+}
+
+.home-section--artworks > .section-heading,
+.about-name,
+.cv-section .section-heading,
+#contact .panel__tag {
+  position: sticky;
+  /* -1px tucks the bar under the nav so no sub-pixel sliver of content shows. */
+  top: calc(var(--nav-height, 0px) - 1px);
+  z-index: 6;
+  padding-top: 14px;
+  padding-bottom: 14px;
+}
+
+.home-section--artworks > .section-heading {
+  --sticky-bg: var(--panel-light);
+  margin-bottom: 14px;
+}
+
+.about-name {
+  --sticky-bg: #f6f1e8;
+}
+
+.cv-section .section-heading {
+  --sticky-bg: var(--panel-light);
+  margin-bottom: 34px;
+}
+
+#contact .panel__tag {
+  --sticky-bg: #f5eee4;
+}
+
+.home-section--artworks > .section-heading::before,
+.about-name::before,
+.cv-section .section-heading::before,
+#contact .panel__tag::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 100vw;
+  transform: translateX(-50%);
+  z-index: -1;
+  background: var(--grain) 0 0 / var(--grain-size), var(--sticky-bg);
+  pointer-events: none;
+}
+
+.artwork-section__heading {
+  position: sticky;
+  top: calc(var(--nav-height, 0px) - 1px + var(--sticky-heading-h, 60px));
+  z-index: 5;
+}
+
+/* Hash links to #weaving / #photography land below the pinned "Artwork" bar. */
+.artwork-section {
+  scroll-margin-top: var(--sticky-heading-h, 60px);
 }

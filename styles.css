@@ -2180,8 +2180,8 @@ body.lightbox-open {
 
 /* ---------- Cover name on phones ----------
    The cover is 1.5x as tall as it is wide, so on phones it is shorter than
-   the screen. Pin the name a third of the way down the photo instead of the
-   middle of the screen, and scale it down. */
+   the screen. Pin the name near the top of the photo (in its dark area)
+   instead of the middle of the screen, and scale it down. */
 @media (max-width: 640px) {
   .cover {
     --cover-visible: min(100vh, 150vw);
@@ -2192,7 +2192,8 @@ body.lightbox-open {
   .cover__name-wrap {
     height: var(--cover-visible);
     align-items: flex-start;
-    padding-top: calc(var(--cover-visible) / 3);
+    /* ~15% down sits in the dark area above the hanging pieces. */
+    padding-top: calc(var(--cover-visible) * 0.15);
   }
   .cover__name {
     font-size: 1.55rem;

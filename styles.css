@@ -694,6 +694,21 @@ h2 {
   display: block;
 }
 
+/* Fallback: Drive's own player. Its control bar needs ~340px, so the frame is
+   never narrower than that (a portrait video gets slim side bars on phones). */
+.vplayer.is-embed {
+  width: max(var(--fit-w), min(100vw, 360px));
+  height: calc(var(--fit-w) * var(--video-h, 9) / var(--video-w, 16));
+  aspect-ratio: auto;
+}
+
+.vplayer__embed {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
 .vplayer:fullscreen {
   width: 100%;
   height: 100%;

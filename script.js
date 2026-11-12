@@ -546,7 +546,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     return `${m}:${String(sec).padStart(2, "0")}`;
   };
 
-  function createVideoPlayer({ sources, poster, label, ratioW, ratioH, trackId = "video" }) {
+  function createVideoPlayer({ sources, poster, label, ratioW, ratioH, trackId = "video", fallbackEmbed = "" }) {
     const HIDE_AFTER = 3000;
     const root = document.createElement("div");
     // is-fresh: not started yet (or finished) -> only the big play button shows
@@ -594,6 +594,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         failedSources += 1;
         if (failedSources === sources.length) {
           trackOnce(`video/${trackId}/error`, `${label}: could not be loaded or played`);
+          useFallback();
         }
       });
       video.appendChild(source);
@@ -746,8 +747,35 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (!root.classList.contains("is-fresh")) showControls();
     });
 
+    // If this browser can't play the file (e.g. an HEVC .mov on Drive), show
+    // Drive's own player instead, which converts the video for every browser.
+    // Its frame is only loaded while the slide is current (see syncVideos).
+    const useFallback = () => {
+      if (!fallbackEmbed || root.classList.contains("is-embed")) return;
+      trackOnce(`video/${trackId}/fallback-drive-player`, `${label}: shown in Drive's player`);
+      clearTimeout(hideTimer);
+      root.classList.add("is-embed");
+      root.replaceChildren();
+      const frame = document.createElement("iframe");
+      frame.className = "vplayer__embed";
+      frame.title = label;
+      frame.allow = "autoplay; fullscreen; picture-in-picture";
+      frame.allowFullscreen = true;
+      frame.dataset.src = fallbackEmbed;
+      root.appendChild(frame);
+      root.syncEmbed?.();
+    };
+    root.syncEmbed = () => {
+      const frame = root.querySelector(".vplayer__embed");
+      if (!frame) return;
+      const current = Boolean(root.closest(".lightbox__slide.is-current"));
+      if (current && frame.getAttribute("src") !== frame.dataset.src) frame.src = frame.dataset.src;
+      else if (!current && frame.hasAttribute("src")) frame.removeAttribute("src");
+    };
+
     root.pauseVideo = () => {
       if (!video.paused) video.pause();
+      root.syncEmbed();
     };
     renderTime();
     return root;
@@ -815,6 +843,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             ? trigger.dataset.videoPoster || (id ? `https://drive.google.com/thumbnail?id=${id}&sz=s0` : "")
             : "",
           ratio: trigger.dataset.videoRatio || "16 / 9",
+          // Drive's own player, used if the browser can't play the file itself
+          embed: video && id ? `https://drive.google.com/file/d/${id}/preview` : "",
           caption,
           artwork,
           part: i + 1,
@@ -972,6 +1002,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             ratioW: w || 16,
             ratioH: h || 9,
             trackId: data.artwork.slug,
+            fallbackEmbed: data.embed,
           }));
         } else {
           img.src = data.url;
@@ -984,6 +1015,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       const syncVideos = () => {
         stage.querySelectorAll(".vplayer").forEach(player => {
           if (!currentSlot || !currentSlot.contains(player)) player.pauseVideo?.();
+          else player.syncEmbed?.();
         });
       };
 

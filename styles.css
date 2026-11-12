@@ -175,7 +175,7 @@ a {
 }
 
 .nav.nav--solid {
-  background: rgba(249, 245, 238, 0.96);
+  background: rgba(249, 245, 238, 0.8);
   border-bottom: 1px solid rgba(64, 52, 42, 0.12);
 }
 
@@ -373,9 +373,10 @@ h2 {
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: rgba(249, 245, 238, 0.96);
+  background: rgba(249, 245, 238, 0.8);
   border-bottom: 1px solid rgba(64, 52, 42, 0.12);
   backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   opacity: var(--nav-expand);
 }
 
@@ -580,7 +581,9 @@ h2 {
   left: 50%;
   transform: translateX(-50%);
   width: 100vw;
-  background-color: #f6f1e8; /* Change to your preferred fill color */
+  background-color: rgba(246, 241, 232, 0.8); /* Change to your preferred fill color */
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   z-index: -1; /* Keeps the fill behind the text */
   pointer-events: none;
 }
@@ -2129,21 +2132,21 @@ body.lightbox-open {
 }
 
 .home-section--artworks > .section-heading {
-  --sticky-bg: var(--panel-light);
+  --sticky-bg: rgba(249, 245, 238, 0.8);
   margin-bottom: 14px;
 }
 
 .about-name {
-  --sticky-bg: #f6f1e8;
+  --sticky-bg: rgba(246, 241, 232, 0.8);
 }
 
 .cv-section .section-heading {
-  --sticky-bg: var(--panel-light);
+  --sticky-bg: rgba(249, 245, 238, 0.8);
   margin-bottom: 34px;
 }
 
 #contact .panel__tag {
-  --sticky-bg: #f5eee4;
+  --sticky-bg: rgba(245, 238, 228, 0.8);
 }
 
 .home-section--artworks > .section-heading::before,
@@ -2159,6 +2162,8 @@ body.lightbox-open {
   transform: translateX(-50%);
   z-index: -1;
   background: var(--grain) 0 0 / var(--grain-size), var(--sticky-bg);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   pointer-events: none;
 }
 

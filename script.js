@@ -345,13 +345,210 @@ document.addEventListener("DOMContentLoaded", async () => {
     updateArrows();
   });
 
+  // ---------- Video player (gallery) ----------
+  // One minimal control bar: play/pause, a single progress bar, time, sound and
+  // full screen. While playing, the controls fade out after 3 s; tapping the
+  // video only shows/hides them (it never pauses). Pausing is the pause button.
+  const ICONS = {
+    play: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg>',
+    pause: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z"/></svg>',
+    sound: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
+    muted: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9.5l5 5m0-5l-5 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
+    full: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 9V4.5H9M15 4.5h4.5V9M19.5 15v4.5H15M9 19.5H4.5V15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  };
+  const formatTime = t => {
+    if (!Number.isFinite(t) || t < 0) t = 0;
+    const m = Math.floor(t / 60);
+    const sec = Math.floor(t % 60);
+    return `${m}:${String(sec).padStart(2, "0")}`;
+  };
+
+  function createVideoPlayer({ sources, poster, label, ratioW, ratioH }) {
+    const HIDE_AFTER = 3000;
+    const root = document.createElement("div");
+    // is-fresh: not started yet (or finished) -> only the big play button shows
+    root.className = "vplayer is-paused is-fresh";
+    root.style.setProperty("--video-w", ratioW);
+    root.style.setProperty("--video-h", ratioH);
+    root.innerHTML = `
+      <video class="vplayer__video" playsinline preload="metadata"></video>
+      <img class="vplayer__poster" alt="" referrerpolicy="no-referrer" decoding="async" />
+      <button class="vplayer__big" type="button" aria-label="Play video">${ICONS.play}</button>
+      <div class="vplayer__bar">
+        <button class="vplayer__btn vplayer__toggle" type="button" aria-label="Play">${ICONS.play}</button>
+        <input class="vplayer__progress" type="range" min="0" max="1000" step="1" value="0" aria-label="Seek" />
+        <span class="vplayer__time">0:00 / 0:00</span>
+        <button class="vplayer__btn vplayer__mute" type="button" aria-label="Mute">${ICONS.sound}</button>
+        <button class="vplayer__btn vplayer__full" type="button" aria-label="Full screen">${ICONS.full}</button>
+      </div>`;
+    const video = root.querySelector("video");
+    const big = root.querySelector(".vplayer__big");
+    const toggle = root.querySelector(".vplayer__toggle");
+    const progress = root.querySelector(".vplayer__progress");
+    const time = root.querySelector(".vplayer__time");
+    const mute = root.querySelector(".vplayer__mute");
+    const full = root.querySelector(".vplayer__full");
+
+    video.setAttribute("aria-label", label);
+    // The still is a plain <img> (not video.poster) so it can be requested
+    // without a referrer, which Google Drive requires.
+    const posterImg = root.querySelector(".vplayer__poster");
+    if (poster) posterImg.src = poster;
+    else posterImg.remove();
+    posterImg.addEventListener("click", () => play());
+    sources.forEach(({ src, type }) => {
+      const source = document.createElement("source");
+      source.src = src;
+      source.type = type;
+      video.appendChild(source);
+    });
+
+    let hideTimer = 0;
+    let seeking = false;
+    const scheduleHide = () => {
+      clearTimeout(hideTimer);
+      if (!video.paused && !seeking) {
+        hideTimer = setTimeout(() => root.classList.remove("is-controls"), HIDE_AFTER);
+      }
+    };
+    const showControls = () => {
+      root.classList.add("is-controls");
+      scheduleHide();
+    };
+    const hideControls = () => {
+      clearTimeout(hideTimer);
+      root.classList.remove("is-controls");
+    };
+
+    const renderTime = () => {
+      const d = video.duration;
+      if (!seeking && Number.isFinite(d) && d > 0) {
+        progress.value = String(Math.round((video.currentTime / d) * 1000));
+      }
+      progress.style.setProperty("--progress", `${(Number(progress.value) / 10).toFixed(2)}%`);
+      time.textContent = `${formatTime(video.currentTime)} / ${formatTime(d)}`;
+    };
+    let raf = 0;
+    const tick = () => {
+      renderTime();
+      raf = video.paused ? 0 : requestAnimationFrame(tick);
+    };
+
+    const play = () => {
+      const attempt = video.play();
+      attempt?.catch?.(() => root.classList.add("is-paused"));
+    };
+
+    video.addEventListener("play", () => {
+      root.classList.remove("is-paused", "is-fresh");
+      toggle.innerHTML = ICONS.pause;
+      toggle.setAttribute("aria-label", "Pause");
+      if (!raf) raf = requestAnimationFrame(tick);
+      showControls();
+    });
+    video.addEventListener("pause", () => {
+      root.classList.add("is-paused");
+      toggle.innerHTML = ICONS.play;
+      toggle.setAttribute("aria-label", "Play");
+      root.classList.add("is-controls");
+      clearTimeout(hideTimer);
+    });
+    video.addEventListener("ended", () => {
+      root.classList.add("is-fresh");
+      root.classList.remove("is-controls");
+    });
+    video.addEventListener("waiting", () => root.classList.add("is-waiting"));
+    ["playing", "canplay", "pause"].forEach(type =>
+      video.addEventListener(type, () => root.classList.remove("is-waiting"))
+    );
+    ["loadedmetadata", "durationchange", "timeupdate", "seeked"].forEach(type =>
+      video.addEventListener(type, renderTime)
+    );
+    video.addEventListener("volumechange", () => {
+      mute.innerHTML = video.muted ? ICONS.muted : ICONS.sound;
+      mute.setAttribute("aria-label", video.muted ? "Unmute" : "Mute");
+    });
+
+    // Tapping the picture: starts a paused video; while playing it only
+    // shows or hides the controls.
+    video.addEventListener("click", () => {
+      if (video.paused) play();
+      else if (root.classList.contains("is-controls")) hideControls();
+      else showControls();
+    });
+    big.addEventListener("click", play);
+    toggle.addEventListener("click", () => {
+      if (video.paused) play();
+      else video.pause();
+    });
+    mute.addEventListener("click", () => {
+      video.muted = !video.muted;
+      showControls();
+    });
+    full.addEventListener("click", () => {
+      const doc = document;
+      if (doc.fullscreenElement || doc.webkitFullscreenElement) {
+        (doc.exitFullscreen || doc.webkitExitFullscreen)?.call(doc);
+      } else if (root.requestFullscreen) {
+        root.requestFullscreen().catch(() => {});
+      } else if (root.webkitRequestFullscreen) {
+        root.webkitRequestFullscreen();
+      } else if (video.webkitEnterFullscreen) {
+        video.webkitEnterFullscreen(); // iPhone: only the video element can go full screen
+      }
+      showControls();
+    });
+
+    const seekTo = () => {
+      const d = video.duration;
+      if (Number.isFinite(d) && d > 0) video.currentTime = (Number(progress.value) / 1000) * d;
+      renderTime();
+    };
+    progress.addEventListener("input", () => {
+      seeking = true;
+      clearTimeout(hideTimer);
+      seekTo();
+    });
+    progress.addEventListener("change", () => {
+      seeking = false;
+      seekTo();
+      showControls();
+    });
+    // Keep scrubbing and arrow keys on the bar from swiping/stepping the gallery.
+    ["touchstart", "touchmove", "touchend", "keydown"].forEach(type =>
+      progress.addEventListener(type, event => event.stopPropagation(), { passive: true })
+    );
+
+    // Any pointer movement or focus inside the player brings the controls back
+    // (once the video has started).
+    root.addEventListener("pointermove", event => {
+      if (event.pointerType === "mouse" && !root.classList.contains("is-fresh")) showControls();
+    });
+    root.addEventListener("focusin", () => {
+      if (!root.classList.contains("is-fresh")) showControls();
+    });
+
+    root.pauseVideo = () => {
+      if (!video.paused) video.pause();
+    };
+    renderTime();
+    return root;
+  }
+
   const lightboxTriggers = document.querySelectorAll(".portfolio-tile--image");
   if (lightboxTriggers.length) {
     // Keep each medium's slide list independent while sharing one lightbox.
     const galleries = new Map();
-    // Google Drive video: a "drive.google.com/file/d/<id>/preview" slide plays in
-    // Drive's own player (Drive converts the video for every browser).
-    const driveVideoId = url => url.match(/drive\.google\.com\/file\/d\/([^/?#]+)\/preview/)?.[1] || "";
+    // Video slides: a Google Drive file link (drive.google.com/file/d/<id>/...)
+    // or a direct .mp4/.webm URL. Drive files are streamed straight from Drive's
+    // download address into the site's own player (see createVideoPlayer).
+    const driveFileId = url => url.match(/drive\.google\.com\/file\/d\/([^/?#]+)/)?.[1] || "";
+    const isVideoSlide = url => Boolean(driveFileId(url)) || /\.(mp4|webm|mov)(\?|#|$)/i.test(url);
+    const streamUrl = url => {
+      const id = driveFileId(url);
+      return id ? `https://drive.usercontent.google.com/download?id=${id}&export=download` : url;
+    };
+    const videoType = url => (/\.webm(\?|#|$)/i.test(url) ? "video/webm" : "video/mp4");
     let slides = [];
     const triggerStartIndex = new WeakMap();
     const triggerGallery = new WeakMap();
@@ -369,13 +566,26 @@ document.addEventListener("DOMContentLoaded", async () => {
       triggerStartIndex.set(trigger, gallerySlides.length);
       triggerGallery.set(trigger, gallerySlides);
       urls.forEach((url, i) => {
-        const videoId = driveVideoId(url);
-        const video = Boolean(videoId);
+        const video = isVideoSlide(url);
+        const id = driveFileId(url);
+        // Sources in order of preference: the slide's file (H.264 .mp4), then an
+        // optional data-video-webm (VP9), for browsers without H.264 (VS Code's).
+        const sources = video
+          ? [
+              { src: streamUrl(url), type: id ? "video/mp4" : videoType(url) },
+              ...(trigger.dataset.videoWebm
+                ? [{ src: streamUrl(trigger.dataset.videoWebm), type: "video/webm" }]
+                : []),
+            ]
+          : [];
         gallerySlides.push({
           url,
           video,
-          // Drive's still of the video, shown while the slide is beside the current one
-          poster: video ? `https://drive.google.com/thumbnail?id=${videoId}&sz=s0` : "",
+          sources,
+          // the still shown before playing and while the slide is beside the current one
+          poster: video
+            ? trigger.dataset.videoPoster || (id ? `https://drive.google.com/thumbnail?id=${id}&sz=s0` : "")
+            : "",
           ratio: trigger.dataset.videoRatio || "16 / 9",
           caption,
           alt: i === 0 ? baseAlt : `${baseAlt} ${video ? "video" : `detail ${i + 1}`}`,
@@ -513,39 +723,31 @@ document.addEventListener("DOMContentLoaded", async () => {
       const fillSlot = (slot, index) => {
         const data = slides[index];
         const img = slot.querySelector("img");
-        let frame = slot.querySelector("iframe");
+        slot.querySelector(".vplayer")?.remove();
         slot.classList.toggle("is-video", data.video);
         if (data.video) {
-          // The still stays in the slot; the player is only loaded while the
-          // slide is current (see syncVideos).
+          // The still stays in the slot for the neighbouring positions; the
+          // player replaces it while the slide is current.
           img.src = data.poster;
-          if (!frame) {
-            frame = document.createElement("iframe");
-            frame.className = "lightbox__slide-video";
-            frame.allow = "autoplay; fullscreen; picture-in-picture";
-            frame.allowFullscreen = true;
-            slot.appendChild(frame);
-          }
-          frame.title = data.alt;
-          frame.dataset.src = data.url;
           const [w, h] = data.ratio.split("/").map(n => parseFloat(n));
-          frame.style.setProperty("--video-w", w || 16);
-          frame.style.setProperty("--video-h", h || 9);
+          slot.appendChild(createVideoPlayer({
+            sources: data.sources,
+            poster: data.poster,
+            label: data.alt,
+            ratioW: w || 16,
+            ratioH: h || 9,
+          }));
         } else {
-          frame?.remove();
           img.src = data.url;
         }
         img.alt = data.alt;
         slot.dataset.index = String(index);
       };
 
-      // Load the player on the current slide; unload it everywhere else so a
-      // video stops when you move on.
+      // A video stops as soon as its slide is no longer the current one.
       const syncVideos = () => {
-        stage.querySelectorAll("iframe.lightbox__slide-video").forEach(frame => {
-          const current = Boolean(currentSlot && currentSlot.contains(frame));
-          if (current && frame.getAttribute("src") !== frame.dataset.src) frame.src = frame.dataset.src;
-          else if (!current && frame.hasAttribute("src")) frame.removeAttribute("src");
+        stage.querySelectorAll(".vplayer").forEach(player => {
+          if (!currentSlot || !currentSlot.contains(player)) player.pauseVideo?.();
         });
       };
 
@@ -641,7 +843,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       const closeLightbox = () => {
         resetZoom();
-        stage.querySelectorAll("iframe.lightbox__slide-video").forEach(f => f.removeAttribute("src"));
+        stage.querySelectorAll(".vplayer").forEach(player => player.pauseVideo?.());
         lightbox.classList.remove("is-open");
         document.body.classList.remove("lightbox-open");
         window.clearTimeout(closeTimer);

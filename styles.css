@@ -660,49 +660,238 @@ h2 {
   border-color: transparent transparent transparent currentColor;
 }
 
-/* Video slides in the gallery: beside the current slide they show Drive's
-   still; once current, the still makes way for Drive's player. The slide is a
-   size container so the player is sized from the video's shape (--video-w /
-   --video-h, set from data-video-ratio) and always fits inside it. */
+/* Video slides in the gallery: beside the current slide they show the still;
+   once current, the still makes way for the player. The slide is a size
+   container so the player keeps the video's exact shape (--video-w / --video-h,
+   from data-video-ratio) and always fits inside it. */
 .lightbox__slide.is-video {
   container-type: size;
-}
-
-.lightbox__slide-video {
-  /* the largest box of the video's shape that fits the slide... */
-  --fit-w: min(100cqw, 100cqh * var(--video-w, 16) / var(--video-h, 9));
-  display: none;
-  flex: 0 0 auto;
-  /* ...but never narrower than Drive's control bar needs (~340px), so a
-     portrait video on a phone gets slim side bars instead of cut-off controls;
-     on the narrowest phones it runs edge to edge, past the gallery's padding */
-  width: max(var(--fit-w), min(100vw, 360px));
-  height: calc(var(--fit-w) * var(--video-h, 9) / var(--video-w, 16));
-  border: 0;
-  background: #000;
-  filter:
-    drop-shadow(3px 6px 5px rgba(70, 50, 30, 0.18))
-    drop-shadow(3px 20px 10px rgba(50, 32, 15, 0.24));
-}
-
-/* Phones: keep the player clear of the close button and nav arrows' tap area
-   at the top, and drop the shadow (it reads as a smudge at this size). */
-@media (max-width: 700px) {
-  .lightbox__slide.is-video {
-    padding: 52px 0 6px;
-  }
-  .lightbox__slide-video {
-    filter: none;
-  }
 }
 
 .lightbox__slide.is-video.is-current .lightbox__slide-img {
   display: none;
 }
 
-.lightbox__slide.is-video.is-current .lightbox__slide-video {
-  display: block;
+.vplayer {
+  --fit-w: min(100cqw, 100cqh * var(--video-w, 16) / var(--video-h, 9));
+  position: relative;
+  display: none;
+  flex: 0 0 auto;
+  width: var(--fit-w);
+  aspect-ratio: var(--video-w, 16) / var(--video-h, 9);
+  overflow: hidden;
+  background: #000;
+  color: #fff;
+  container-type: inline-size;
   pointer-events: auto;
+  box-shadow:
+    3px 6px 10px rgba(70, 50, 30, 0.18),
+    3px 24px 36px -8px rgba(50, 32, 15, 0.28);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.lightbox__slide.is-video.is-current .vplayer {
+  display: block;
+}
+
+.vplayer:fullscreen {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: auto;
+  box-shadow: none;
+}
+
+.vplayer__video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  cursor: pointer;
+}
+
+.vplayer:not(.is-controls):not(.is-paused) .vplayer__video {
+  cursor: none;
+}
+
+.vplayer__poster {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  cursor: pointer;
+  transition: opacity 0.4s ease;
+}
+
+.vplayer:not(.is-fresh) .vplayer__poster {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* the large play button: only before the first play and after the end */
+.vplayer__big {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  display: grid;
+  place-items: center;
+  width: 68px;
+  height: 68px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 50%;
+  background: rgba(20, 16, 12, 0.42);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  color: #fff;
+  cursor: pointer;
+  transform: translate(-50%, -50%);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.vplayer__big svg {
+  width: 30px;
+  height: 30px;
+  margin-left: 3px;
+  fill: currentColor;
+}
+
+.vplayer__big:hover {
+  transform: translate(-50%, -50%) scale(1.06);
+}
+
+.vplayer:not(.is-fresh) .vplayer__big {
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -50%) scale(0.9);
+}
+
+/* the single control bar */
+.vplayer__bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 26px 10px 10px;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.55));
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.vplayer:not(.is-controls) .vplayer__bar,
+.vplayer.is-fresh .vplayer__bar {
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: none;
+}
+
+.vplayer__btn {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+}
+
+.vplayer__btn svg {
+  width: 22px;
+  height: 22px;
+  fill: currentColor;
+}
+
+.vplayer__btn:hover,
+.vplayer__btn:focus-visible,
+.vplayer__big:focus-visible {
+  background: rgba(255, 255, 255, 0.16);
+  outline: none;
+}
+
+.vplayer__time {
+  flex: 0 0 auto;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.9;
+}
+
+/* narrow players (portrait video on a phone): drop the time to keep one row */
+@container (max-width: 260px) {
+  .vplayer__time { display: none; }
+}
+
+.vplayer__progress {
+  --progress: 0%;
+  flex: 1 1 auto;
+  min-width: 40px;
+  height: 22px;
+  margin: 0 4px;
+  background: transparent;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  touch-action: none;
+}
+
+.vplayer__progress::-webkit-slider-runnable-track {
+  height: 3px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #fff var(--progress), rgba(255, 255, 255, 0.32) var(--progress));
+}
+
+.vplayer__progress::-moz-range-track {
+  height: 3px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #fff var(--progress), rgba(255, 255, 255, 0.32) var(--progress));
+}
+
+.vplayer__progress::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 13px;
+  height: 13px;
+  margin-top: -5px;
+  border: 0;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.vplayer__progress::-moz-range-thumb {
+  width: 13px;
+  height: 13px;
+  border: 0;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.vplayer__progress:focus-visible {
+  outline: none;
+}
+
+.vplayer__progress:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.3);
+}
+
+/* buffering: a slow pulse on the bar */
+.vplayer.is-waiting .vplayer__progress {
+  animation: vplayer-wait 1.2s ease-in-out infinite;
+}
+
+@keyframes vplayer-wait {
+  50% { opacity: 0.45; }
+}
+
+/* Phones: keep the player clear of the close button. */
+@media (max-width: 700px) {
+  .lightbox__slide.is-video {
+    padding: 52px 0 6px;
+  }
 }
 
 .portfolio-tile--image img {

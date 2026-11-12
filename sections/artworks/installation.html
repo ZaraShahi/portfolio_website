@@ -5,11 +5,14 @@
       aria-label="Scroll installation artworks left" aria-controls="installation-track">&#8249;</button>
     <div class="portfolio-grid portfolio-grid--carousel" id="installation-track" aria-label="Installation artworks">
       <!-- Images use Google Drive thumbnail links: https://drive.google.com/thumbnail?id=FILE_ID&amp;sz=s0
-        A Drive video goes in data-slides as https://drive.google.com/file/d/FILE_ID/preview and plays in
-        Drive's player; data-video-ratio is its width / height (a portrait phone video is 9 / 16). -->
+        A video slide is a Drive file link, https://drive.google.com/file/d/FILE_ID/view, of an H.264 .mp4;
+        the site streams it from Drive into its own player. Optional on the tile:
+          data-video-webm   Drive link of a VP9 .webm copy (for browsers without H.264, e.g. VS Code's)
+          data-video-poster still shown before playing (default: Drive's thumbnail of the video)
+          data-video-ratio  width / height of the video (portrait phone video: 9 / 16) -->
       <button class="portfolio-tile portfolio-tile--image" type="button" aria-label="Open An Ocean Between Us artwork"
         data-caption="An Ocean Between Us, 2026, monofilament thread, silk yarn, floor loom reed, video, and sound"
-        data-slides="https://drive.google.com/thumbnail?id=1_cMCAlrHzmXIR3nxYjcJPzRXxUw91HSv&amp;sz=s0|https://drive.google.com/file/d/1ZR3tiws2f4Mwa5_de-xokCaX9a9adaDb/preview"
+        data-slides="https://drive.google.com/thumbnail?id=1_cMCAlrHzmXIR3nxYjcJPzRXxUw91HSv&amp;sz=s0|https://drive.google.com/file/d/1ZR3tiws2f4Mwa5_de-xokCaX9a9adaDb/view"
         data-video-ratio="9 / 16">
         <img src="https://drive.google.com/thumbnail?id=1_cMCAlrHzmXIR3nxYjcJPzRXxUw91HSv&amp;sz=s0" referrerpolicy="no-referrer" alt="An Ocean Between Us installation by Zara Shahi"
           loading="lazy" decoding="async" />

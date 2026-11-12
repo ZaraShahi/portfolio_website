@@ -18,26 +18,198 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }));
 
-  // GoatCounter: count in-page section navigation (hash changes) as pageviews.
-  // count.js loads async and only records the initial path, so hash sections
-  // like #artworks/#about/#cv/#contact would otherwise never be captured.
-  const countHash = () => {
-    if (!window.location.hash) return;
-    const send = (tries = 0) => {
-      if (window.goatcounter && typeof window.goatcounter.count === "function") {
-        window.goatcounter.count({
-          path: window.location.pathname + window.location.hash,
-          title: `${document.title} ${window.location.hash}`,
-          event: false,
-        });
-      } else if (tries < 50) {
-        window.setTimeout(() => send(tries + 1), 100);
-      }
-    };
-    send();
+  // ---------- Analytics (GoatCounter events) ----------
+  // Everything a visitor does is sent to GoatCounter as an "event" (the normal
+  // page view is still counted by count.js itself). Paths are grouped so the
+  // dashboard reads well:
+  //   section/<id>                 a section was really looked at (>=1 s, half on screen)
+  //   scroll/<25|50|75|100>        how far down the page people get
+  //   nav/<place>/<target>         menu, logo, footer and other in-page links
+  //   artwork/open/<medium>/<work> a tile was clicked
+  //   artwork/view/<medium>/<work> the work was shown in the gallery (also when reached by arrows)
+  //   artwork/image/<medium>/<work>/<n>  each image of a work that was shown
+  //   artwork/zoom/<medium>/<work>/<n>   an image was zoomed into
+  //   artwork/time/<medium>/<work>/<bucket>  time spent on a work in the gallery
+  //   gallery/<close|next|prev|swipe>    how people move through the gallery
+  //   carousel/<medium>/<next|prev|scroll>
+  //   video/<work>/<start|pause|resume|25|50|75|complete|replay|seek|mute|unmute|fullscreen|error>
+  //   click/<email|cv-download|instagram|linkedin|location-map|...>
+  //   outbound/<site>/<section>    links to other websites (press, catalogues...)
+  //   contact/form-submit, landing/<#hash>, time-on-page/<bucket>, error/image/<host>
+  const slugify = text =>
+    String(text || "")
+      .toLowerCase()
+      .normalize("NFKD")
+      .replace(/[̀-ͯ]/g, "")
+      .replace(/&/g, " and ")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "") || "untitled";
+
+  const trackQueue = [];
+  let trackTimer = 0;
+  const flushTrack = (tries = 0) => {
+    const gc = window.goatcounter;
+    if (gc && typeof gc.count === "function") {
+      while (trackQueue.length) gc.count(trackQueue.shift());
+      trackTimer = 0;
+    } else if (tries < 150) {
+      // count.js loads async (and may be blocked); keep events for up to ~15 s
+      trackTimer = window.setTimeout(() => flushTrack(tries + 1), 100);
+    } else {
+      trackQueue.length = 0;
+      trackTimer = 0;
+    }
   };
-  window.addEventListener("hashchange", countHash);
-  countHash();
+  const track = (path, title) => {
+    trackQueue.push({ path, title: title || path, event: true });
+    if (!trackTimer) flushTrack();
+  };
+  const trackEvent = (path, title) => track(path, title); // for scopes where "track" is a local name
+  const trackOnce = (() => {
+    const sent = new Set();
+    return (path, title) => {
+      if (sent.has(path)) return;
+      sent.add(path);
+      track(path, title);
+    };
+  })();
+  const timeBucket = seconds =>
+    seconds < 5 ? "under-5s" :
+    seconds < 15 ? "5-15s" :
+    seconds < 60 ? "15-60s" :
+    seconds < 180 ? "1-3min" :
+    seconds < 600 ? "3-10min" : "over-10min";
+
+  // Arrived through a link to a section (e.g. someone shared .../#cv)
+  if (window.location.hash.length > 1) {
+    track(`landing/${slugify(window.location.hash)}`, `Arrived at ${window.location.hash}`);
+  }
+
+  // Link clicks, classified by where they lead and where they sit on the page.
+  const linkPlace = link =>
+    link.closest(".nav__drawer") ? "menu-drawer" :
+    link.closest(".nav__links") ? "menu" :
+    link.classList.contains("nav__brand") ? "logo" :
+    link.closest(".footer") ? "footer" :
+    link.closest("#cv") ? "cv" :
+    link.closest("#contact, .contact") ? "contact" :
+    link.closest("#about") ? "about" : "page";
+  document.addEventListener("click", event => {
+    const link = event.target.closest?.("a[href]");
+    if (!link) return;
+    const href = link.getAttribute("href") || "";
+    const label = (link.getAttribute("aria-label") || link.textContent || "").trim().replace(/\s+/g, " ");
+    let url;
+    try { url = new URL(href, window.location.href); } catch { return; }
+    const place = linkPlace(link);
+    if (url.protocol === "mailto:") return track(`click/email/${place}`, `Email link (${place})`);
+    if (url.protocol === "tel:") return track(`click/phone/${place}`, `Phone link (${place})`);
+    if (link.hasAttribute("download") || /\.pdf$/i.test(url.pathname) && url.origin === window.location.origin) {
+      return track(`click/cv-download/${place}`, `Downloaded CV (${place})`);
+    }
+    if (url.origin !== window.location.origin) {
+      const host = url.hostname.replace(/^www\./, "");
+      if (/instagram\.com$/.test(host)) return track(`click/instagram/${place}`, `Instagram (${place})`);
+      if (/linkedin\.com$/.test(host)) return track(`click/linkedin/${place}`, `LinkedIn (${place})`);
+      if (/^maps\.google\./.test(host) || url.pathname.startsWith("/maps")) {
+        return track(`click/location-map/${place}`, `Location map (${place})`);
+      }
+      const first = url.pathname.split("/").filter(Boolean)[0] || "";
+      return track(`outbound/${host}${first ? `/${slugify(first)}` : ""}`, `${label || host} (${place})`);
+    }
+    const samePage = url.pathname === window.location.pathname;
+    if (samePage && url.hash) {
+      return track(`nav/${place}/${slugify(url.hash) || "top"}`, `${label || url.hash} (${place})`);
+    }
+    track(`nav/${place}/page-${slugify(url.pathname.split("/").pop() || "home")}`, `${label} (${place})`);
+  }, true);
+
+  // Sections actually looked at: at least half of the section (or half the
+  // screen, for sections taller than it) visible for a full second.
+  const sectionTargets = [
+    [".cover", "cover"],
+    ["#weaving", "weaving"],
+    ["#installation", "installation"],
+    ["#photography", "photography"],
+    ["#about", "about"],
+    ["#cv", "cv"],
+    ["#contact", "contact"],
+  ];
+  const sectionTimers = new Map();
+  const sectionObserver = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      const el = entry.target;
+      const visible = entry.intersectionRect.height;
+      const needed = Math.min(entry.boundingClientRect.height, window.innerHeight) * 0.5;
+      const name = el.dataset.trackSection;
+      if (entry.isIntersecting && visible >= needed) {
+        if (!sectionTimers.has(el)) {
+          sectionTimers.set(el, window.setTimeout(() => {
+            trackOnce(`section/${name}`, `Looked at ${name}`);
+            sectionObserver.unobserve(el);
+          }, 1000));
+        }
+      } else if (sectionTimers.has(el)) {
+        window.clearTimeout(sectionTimers.get(el));
+        sectionTimers.delete(el);
+      }
+    });
+  }, { threshold: Array.from({ length: 21 }, (_, i) => i / 20) });
+  sectionTargets.forEach(([selector, name]) => {
+    const el = document.querySelector(selector);
+    if (!el) return;
+    el.dataset.trackSection = name;
+    sectionObserver.observe(el);
+  });
+
+  // Scroll depth
+  let depthFrame = 0;
+  const checkDepth = () => {
+    depthFrame = 0;
+    const doc = document.documentElement;
+    const max = doc.scrollHeight - window.innerHeight;
+    const pct = max > 0 ? (window.scrollY / max) * 100 : 100;
+    [25, 50, 75, 100].forEach(mark => {
+      if (pct >= mark - 1) trackOnce(`scroll/${mark}`, `Scrolled ${mark}% of the page`);
+    });
+  };
+  window.addEventListener("scroll", () => {
+    if (!depthFrame) depthFrame = requestAnimationFrame(checkDepth);
+  }, { passive: true });
+
+  // Time on page (only while the tab is visible), sent when the visitor leaves.
+  let visibleSince = document.visibilityState === "visible" ? performance.now() : 0;
+  let visibleTotal = 0;
+  let timeSent = false;
+  const sendTimeOnPage = () => {
+    if (visibleSince) visibleTotal += performance.now() - visibleSince;
+    visibleSince = 0;
+    if (timeSent) return;
+    timeSent = true;
+    const gc = window.goatcounter;
+    if (gc && typeof gc.count === "function") {
+      const path = `time-on-page/${timeBucket(visibleTotal / 1000)}`;
+      gc.count({ path, title: path, event: true }); // count.js uses sendBeacon, safe on exit
+    }
+  };
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") {
+      if (!visibleSince) visibleSince = performance.now();
+    } else if (visibleSince) {
+      visibleTotal += performance.now() - visibleSince;
+      visibleSince = 0;
+    }
+  });
+  window.addEventListener("pagehide", sendTimeOnPage);
+
+  // Images that fail to load (e.g. Google Drive refusing or rate-limiting)
+  document.addEventListener("error", event => {
+    const el = event.target;
+    if (!(el instanceof HTMLImageElement) || !el.getAttribute("src")) return;
+    let host = "";
+    try { host = new URL(el.src).hostname; } catch { return; }
+    trackOnce(`error/image/${host}`, `An image from ${host} failed to load`);
+  }, true);
 
   document.querySelectorAll("a[href]").forEach(link => {
     link.addEventListener("click", event => {
@@ -215,6 +387,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     burger.addEventListener("click", () => {
+      if (drawer.hidden) track("nav/menu-open", "Opened the menu");
       // With hover the menu is already open, so a click shouldn't close it.
       setDrawer(hoverQuery.matches ? true : drawer.hidden);
     });
@@ -333,13 +506,23 @@ document.addEventListener("DOMContentLoaded", async () => {
       next.disabled = track.scrollLeft >= maxScroll;
     };
 
+    const medium = carousel.closest(".artwork-section")?.id || "carousel";
+    let arrowScrollUntil = 0;
     prev.addEventListener("click", () => {
+      arrowScrollUntil = performance.now() + 900;
+      trackEvent(`carousel/${medium}/prev`, `${medium}: previous arrow`);
       track.scrollBy({ left: -stepSize(), behavior: "smooth" });
     });
     next.addEventListener("click", () => {
+      arrowScrollUntil = performance.now() + 900;
+      trackEvent(`carousel/${medium}/next`, `${medium}: next arrow`);
       track.scrollBy({ left: stepSize(), behavior: "smooth" });
     });
 
+    track.addEventListener("scroll", () => {
+      // scrolled by hand (swipe / trackpad), counted once per visit
+      if (performance.now() > arrowScrollUntil) trackOnce(`carousel/${medium}/scroll`, `${medium}: scrolled by hand`);
+    }, { passive: true });
     track.addEventListener("scroll", updateArrows, { passive: true });
     window.addEventListener("resize", updateArrows);
     updateArrows();
@@ -363,7 +546,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     return `${m}:${String(sec).padStart(2, "0")}`;
   };
 
-  function createVideoPlayer({ sources, poster, label, ratioW, ratioH }) {
+  function createVideoPlayer({ sources, poster, label, ratioW, ratioH, trackId = "video" }) {
     const HIDE_AFTER = 3000;
     const root = document.createElement("div");
     // is-fresh: not started yet (or finished) -> only the big play button shows
@@ -396,10 +579,23 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (poster) posterImg.src = poster;
     else posterImg.remove();
     posterImg.addEventListener("click", () => play());
+    // analytics: video/<work>/...
+    const vt = (what, title) => track(`video/${trackId}/${what}`, `${label}: ${title || what}`);
+    let started = false;
+    let endedOnce = false;
+    let failedSources = 0;
+    const milestones = new Set();
     sources.forEach(({ src, type }) => {
       const source = document.createElement("source");
       source.src = src;
       source.type = type;
+      // a <source> that can't be loaded or decoded; when all fail, the video can't play
+      source.addEventListener("error", () => {
+        failedSources += 1;
+        if (failedSources === sources.length) {
+          trackOnce(`video/${trackId}/error`, `${label}: could not be loaded or played`);
+        }
+      });
       video.appendChild(source);
     });
 
@@ -440,6 +636,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     };
 
     video.addEventListener("play", () => {
+      if (!started) vt("start", "started");
+      else if (root.classList.contains("is-fresh")) vt("replay", "watched again");
+      else vt("resume", "resumed");
+      started = true;
       root.classList.remove("is-paused", "is-fresh");
       toggle.innerHTML = ICONS.pause;
       toggle.setAttribute("aria-label", "Pause");
@@ -454,6 +654,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       clearTimeout(hideTimer);
     });
     video.addEventListener("ended", () => {
+      if (!endedOnce) vt("complete", "watched to the end");
+      endedOnce = true;
       root.classList.add("is-fresh");
       root.classList.remove("is-controls");
     });
@@ -464,6 +666,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     ["loadedmetadata", "durationchange", "timeupdate", "seeked"].forEach(type =>
       video.addEventListener(type, renderTime)
     );
+    video.addEventListener("timeupdate", () => {
+      const d = video.duration;
+      if (!Number.isFinite(d) || d <= 0) return;
+      [25, 50, 75].forEach(mark => {
+        if (!milestones.has(mark) && video.currentTime / d >= mark / 100) {
+          milestones.add(mark);
+          vt(String(mark), `watched ${mark}%`);
+        }
+      });
+    });
     video.addEventListener("volumechange", () => {
       mute.innerHTML = video.muted ? ICONS.muted : ICONS.sound;
       mute.setAttribute("aria-label", video.muted ? "Unmute" : "Mute");
@@ -479,14 +691,19 @@ document.addEventListener("DOMContentLoaded", async () => {
     big.addEventListener("click", play);
     toggle.addEventListener("click", () => {
       if (video.paused) play();
-      else video.pause();
+      else {
+        vt("pause", "paused");
+        video.pause();
+      }
     });
     mute.addEventListener("click", () => {
       video.muted = !video.muted;
+      vt(video.muted ? "mute" : "unmute", video.muted ? "sound off" : "sound on");
       showControls();
     });
     full.addEventListener("click", () => {
       const doc = document;
+      if (!(doc.fullscreenElement || doc.webkitFullscreenElement)) vt("fullscreen", "full screen");
       if (doc.fullscreenElement || doc.webkitFullscreenElement) {
         (doc.exitFullscreen || doc.webkitExitFullscreen)?.call(doc);
       } else if (root.requestFullscreen) {
@@ -510,6 +727,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       seekTo();
     });
     progress.addEventListener("change", () => {
+      vt("seek", "jumped to another point");
       seeking = false;
       seekTo();
       showControls();
@@ -563,6 +781,16 @@ document.addEventListener("DOMContentLoaded", async () => {
       const gallerySlides = galleries.get(gallery);
       const caption = trigger.dataset.caption || "";
       const baseAlt = trigger.querySelector("img")?.alt || "";
+      // for analytics: which work (title = caption up to the first comma) in which medium
+      const artwork = {
+        medium: trigger.closest(".artwork-section")?.id || "artwork",
+        title: caption.split(",")[0].trim() || baseAlt,
+      };
+      artwork.slug = slugify(artwork.title);
+      artwork.key = `${artwork.medium}/${artwork.slug}`;
+      trigger.addEventListener("click", () =>
+        track(`artwork/open/${artwork.key}`, `Opened ${artwork.title} (${artwork.medium})`)
+      );
       triggerStartIndex.set(trigger, gallerySlides.length);
       triggerGallery.set(trigger, gallerySlides);
       urls.forEach((url, i) => {
@@ -588,6 +816,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             : "",
           ratio: trigger.dataset.videoRatio || "16 / 9",
           caption,
+          artwork,
+          part: i + 1,
           alt: i === 0 ? baseAlt : `${baseAlt} ${video ? "video" : `detail ${i + 1}`}`,
         });
       });
@@ -700,6 +930,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       const cycleZoom = () => {
         zoomStep = (zoomStep + 1) % zoomLevels.length;
+        if (zoomStep === 1) {
+          const data = slides[currentIndex];
+          track(`artwork/zoom/${data.artwork.key}/${data.part}`, `${data.artwork.title}: zoomed into image ${data.part}`);
+        }
         updateZoom();
       };
 
@@ -728,7 +962,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (data.video) {
           // The still stays in the slot for the neighbouring positions; the
           // player replaces it while the slide is current.
-          img.src = data.poster;
+          if (data.poster) img.src = data.poster;
+          else img.removeAttribute("src");
           const [w, h] = data.ratio.split("/").map(n => parseFloat(n));
           slot.appendChild(createVideoPlayer({
             sources: data.sources,
@@ -736,6 +971,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             label: data.alt,
             ratioW: w || 16,
             ratioH: h || 9,
+            trackId: data.artwork.slug,
           }));
         } else {
           img.src = data.url;
@@ -751,10 +987,41 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
       };
 
+      // Analytics for the gallery: which work is on screen, for how long, and
+      // which of its images were shown (each once per opening of the gallery).
+      let viewing = null; // { artwork, since }
+      let shownImages = new Set();
+      const endViewing = () => {
+        if (!viewing) return;
+        const seconds = (performance.now() - viewing.since) / 1000;
+        const { artwork } = viewing;
+        track(`artwork/time/${artwork.key}/${timeBucket(seconds)}`, `${artwork.title}: viewed ${timeBucket(seconds)}`);
+        viewing = null;
+      };
+      const slideShown = () => {
+        const data = slides[currentIndex];
+        if (!data) return;
+        const { artwork } = data;
+        if (!viewing || viewing.artwork !== artwork) {
+          endViewing();
+          viewing = { artwork, since: performance.now() };
+          track(`artwork/view/${artwork.key}`, `Viewed ${artwork.title} (${artwork.medium})`);
+        }
+        const imageKey = `${artwork.key}/${data.part}`;
+        if (!shownImages.has(imageKey)) {
+          shownImages.add(imageKey);
+          track(
+            `artwork/image/${imageKey}`,
+            `${artwork.title}: ${data.video ? "video" : `image ${data.part}`} shown`
+          );
+        }
+      };
+
       const updateCaption = () => {
         const cap = slides[currentIndex].caption;
         captionEl.textContent = cap || "";
         captionEl.hidden = !cap;
+        slideShown();
       };
 
       const layoutInitial = () => {
@@ -832,6 +1099,8 @@ document.addEventListener("DOMContentLoaded", async () => {
           return;
         }
         window.clearTimeout(closeTimer);
+        endViewing();
+        shownImages = new Set();
         slides = gallerySlides;
         currentIndex = startIndex;
         warmNeighbors(currentIndex);
@@ -842,6 +1111,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       };
 
       const closeLightbox = () => {
+        if (!lightbox.classList.contains("is-open")) return;
+        endViewing();
+        track("gallery/close", "Closed the gallery");
         resetZoom();
         stage.querySelectorAll(".vplayer").forEach(player => player.pauseVideo?.());
         lightbox.classList.remove("is-open");
@@ -853,15 +1125,28 @@ document.addEventListener("DOMContentLoaded", async () => {
         }, 550);
       };
 
-      prevButton?.addEventListener("click", () => go(-1));
-      nextButton?.addEventListener("click", () => go(1));
+      window.addEventListener("pagehide", endViewing);
+
+      prevButton?.addEventListener("click", () => {
+        track("gallery/prev", "Gallery: previous arrow");
+        go(-1);
+      });
+      nextButton?.addEventListener("click", () => {
+        track("gallery/next", "Gallery: next arrow");
+        go(1);
+      });
 
       stage.addEventListener("click", event => {
         if (performance.now() < suppressClickUntil) return;
         const slot = event.target.closest?.(".lightbox__slide");
         if (!slot) return;
-        if (slot.classList.contains("is-prev")) go(-1);
-        else if (slot.classList.contains("is-next")) go(1);
+        if (slot.classList.contains("is-prev")) {
+          track("gallery/side-image", "Gallery: clicked a side image");
+          go(-1);
+        } else if (slot.classList.contains("is-next")) {
+          track("gallery/side-image", "Gallery: clicked a side image");
+          go(1);
+        }
         else if (slot === currentSlot && event.target.matches(".lightbox__slide-img")) cycleZoom();
       });
 
@@ -925,8 +1210,13 @@ document.addEventListener("DOMContentLoaded", async () => {
       document.addEventListener("keydown", event => {
         if (!lightbox.classList.contains("is-open")) return;
         if (event.key === "Escape") closeLightbox();
-        else if (event.key === "ArrowLeft") go(-1);
-        else if (event.key === "ArrowRight") go(1);
+        else if (event.key === "ArrowLeft") {
+          track("gallery/keyboard", "Gallery: arrow keys");
+          go(-1);
+        } else if (event.key === "ArrowRight") {
+          track("gallery/keyboard", "Gallery: arrow keys");
+          go(1);
+        }
       });
 
       // --- Touch drag navigation (mobile/tablet) ---
@@ -970,6 +1260,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       // is what made fast drags vibrate; here the class swap is applied instantly
       // and the settle is a single composited transform that just decelerates.
       const snapNavigate = direction => {
+        track("gallery/swipe", "Gallery: swiped");
         const slots = draggedSlots.slice();
         const firstLeft = new Map();
         for (const slot of slots) firstLeft.set(slot, slot.getBoundingClientRect().left);
@@ -1138,6 +1429,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const contactForm = document.querySelector(".contact-form");
   contactForm?.addEventListener("submit", event => {
     event.preventDefault();
+    track("contact/form-submit", "Sent the contact form"); // only the fact, never the content
     const formData = new FormData(contactForm);
     const name = String(formData.get("name") || "").trim();
     const email = String(formData.get("email") || "").trim();

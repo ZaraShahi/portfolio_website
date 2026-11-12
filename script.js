@@ -763,6 +763,21 @@ document.addEventListener("DOMContentLoaded", async () => {
       frame.allowFullscreen = true;
       frame.dataset.src = fallbackEmbed;
       root.appendChild(frame);
+      // Drive's player won't lay out narrower than ~340px (it adds black bars
+      // and cuts off its controls), so it gets a frame at least 360px wide in
+      // the video's exact shape, scaled down to fit the box.
+      const MIN_W = 360;
+      const fit = () => {
+        const w = root.clientWidth;
+        if (!w) return;
+        const frameW = Math.max(w, MIN_W);
+        const scale = w / frameW;
+        frame.style.width = `${frameW}px`;
+        frame.style.height = `${frameW * ratioH / ratioW}px`;
+        frame.style.transform = scale < 1 ? `scale(${scale})` : "";
+      };
+      new ResizeObserver(fit).observe(root);
+      fit();
       root.syncEmbed?.();
     };
     root.syncEmbed = () => {

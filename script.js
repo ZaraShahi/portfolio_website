@@ -90,20 +90,84 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   document.querySelectorAll(".reveal").forEach(el => observer.observe(el));
 
+  // ---------- Hanging thread (background decoration) ----------
+  // One continuous thread drawn from the top of the Artwork section down into
+  // Contact. It is three undistorted image pieces: the loop ("head"), a strand
+  // segment that repeats seamlessly ("tile"), and the loose end ("tip"). Only
+  // the number of repeated tiles changes with page length.
+  // Each section gets its own clipped copy behind its content, offset so the
+  // copies line up into one thread (sections are separate stacking contexts,
+  // so a single page-wide layer can't sit behind all of their content).
+  const threadStart = document.getElementById("artworks");
+  const threadEnd = document.getElementById("contact");
+  if (threadStart && threadEnd) {
+    // Pixel heights of the pieces (all pieces are 1200px wide).
+    const THREAD_ASSET_W = 1200;
+    const THREAD_HEAD_H = 1440;
+    const THREAD_TILE_H = 450;
+    const THREAD_TIP_H = 488;
+    const threadPath = "assets/decor/thread-2";
+    const hosts = ["artworks", "about", "cv", "contact"]
+      .map(id => document.getElementById(id))
+      .filter(Boolean);
+
+    const docTop = el => {
+      // offsetTop ignores the .reveal translateY, unlike getBoundingClientRect.
+      let top = 0;
+      for (let node = el; node; node = node.offsetParent) top += node.offsetTop;
+      return top;
+    };
+
+    const slices = hosts.map(host => {
+      host.classList.add("thread-host");
+      const slice = document.createElement("div");
+      slice.className = "thread-slice";
+      slice.setAttribute("aria-hidden", "true");
+      slice.innerHTML =
+        '<div class="thread">' +
+        `<img class="thread__head" src="${threadPath}-head.webp" alt="" decoding="async" />` +
+        `<div class="thread__tail" style="background-image: url('${threadPath}-tile.webp')"></div>` +
+        `<img class="thread__tip" src="${threadPath}-tip.webp" alt="" decoding="async" />` +
+        "</div>";
+      host.prepend(slice);
+      return { host, thread: slice.firstElementChild, tail: slice.querySelector(".thread__tail") };
+    });
+
+    let threadFrame = 0;
+    const layoutThread = () => {
+      threadFrame = 0;
+      const width = slices[0].thread.offsetWidth;
+      if (!width) return;
+      const scale = width / THREAD_ASSET_W;
+      const headH = THREAD_HEAD_H * scale;
+      const tileH = THREAD_TILE_H * scale;
+      const tipH = THREAD_TIP_H * scale;
+      const top = docTop(threadStart);
+      // Let the loose end finish halfway down the Contact bar.
+      const end = docTop(threadEnd) + threadEnd.offsetHeight / 2;
+      const tiles = Math.max(0, Math.round((end - top - headH - tipH) / tileH));
+      slices.forEach(({ host, thread, tail }) => {
+        thread.style.top = `${top - docTop(host)}px`;
+        tail.style.height = `${tiles * tileH}px`;
+      });
+    };
+    const scheduleThread = () => {
+      if (!threadFrame) threadFrame = requestAnimationFrame(layoutThread);
+    };
+    scheduleThread();
+    window.addEventListener("load", scheduleThread);
+    window.addEventListener("resize", scheduleThread);
+    // Images loading and layout changes move the sections; follow them.
+    new ResizeObserver(scheduleThread).observe(document.querySelector("main") || document.body);
+  }
+
   const nav = document.querySelector(".nav");
-  const stickyHeading = document.querySelector(".home-section--artworks > .section-heading");
   const updateNavHeight = () => {
     if (!nav) return;
     document.documentElement.style.setProperty(
       "--nav-height",
       `${nav.offsetHeight}px`
     );
-    if (stickyHeading) {
-      document.documentElement.style.setProperty(
-        "--sticky-heading-h",
-        `${stickyHeading.offsetHeight}px`
-      );
-    }
   };
   const toggleNav = () => {
     if (window.scrollY > 30) {

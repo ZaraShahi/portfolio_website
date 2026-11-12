@@ -573,21 +573,6 @@ h2 {
   position: relative;
 }
 
-.artwork-section__heading::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100vw;
-  background-color: rgba(246, 241, 232, 0.8); /* Change to your preferred fill color */
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  z-index: -1; /* Keeps the fill behind the text */
-  pointer-events: none;
-}
-
 .artwork-section__empty {
   width: 100%;
   margin: 0;
@@ -2099,7 +2084,6 @@ body.lightbox-open {
 .panel--dark,
 #contact,
 .home-section--artworks,
-.artwork-section__heading::before,
 .about-hero,
 .about-body,
 .statement,
@@ -2111,15 +2095,13 @@ body.lightbox-open {
 }
 
 /* ---------- Sticky section headings ----------
-   Each main heading (Artwork, About, CV, Contact) pins under the nav while
-   its section is on screen and is pushed out by the next one. The artwork
-   sub-headings (Weaving, Photography) pin just below "Artwork".
-   --sticky-heading-h is measured in script.js. */
+   One ribbon is pinned under the nav at a time: Weaving, then Photography,
+   About, CV and Contact each pin while their section is on screen and are
+   pushed out by the next. "Artwork" itself scrolls away normally. */
 .home-page {
   overflow-x: clip;
 }
 
-.home-section--artworks > .section-heading,
 .about-name,
 .cv-section .section-heading,
 #contact .panel__tag {
@@ -2132,50 +2114,87 @@ body.lightbox-open {
 }
 
 .home-section--artworks > .section-heading {
-  --sticky-bg: rgba(249, 245, 238, 0.8);
+  position: relative;
+  padding-top: 14px;
+  padding-bottom: 14px;
   margin-bottom: 14px;
 }
 
-.about-name {
-  --sticky-bg: rgba(246, 241, 232, 0.8);
-}
-
 .cv-section .section-heading {
-  --sticky-bg: rgba(249, 245, 238, 0.8);
   margin-bottom: 34px;
 }
 
+/* ---------- Silk ribbons behind the headings ----------
+   ::before lightly diffuses whatever scrolls underneath (like looking
+   through thin silk); ::after is the translucent silk itself. Each image is
+   one whole ribbon whose ends were blended so it repeats as one continuous
+   piece. --ribbon-ratio: image width / height. --ribbon-x: shifts which
+   stretch of silk sits behind the heading. */
+.home-section--artworks > .section-heading,
+.artwork-section__heading,
+.about-name,
+.cv-section .section-heading,
 #contact .panel__tag {
-  --sticky-bg: rgba(245, 238, 228, 0.8);
+  --ribbon-h: clamp(68px, 6vw, 88px);
+  --ribbon-w: calc(var(--ribbon-ratio) * var(--ribbon-h));
+}
+
+.home-section--artworks > .section-heading { --ribbon: url("assets/decor/ribbon-4.webp"); --ribbon-ratio: 11; }
+#weaving .artwork-section__heading { --ribbon: url("assets/decor/ribbon-3.webp"); --ribbon-ratio: 11.0429; --ribbon-x: -300px; }
+#photography .artwork-section__heading { --ribbon: url("assets/decor/ribbon-5.webp"); --ribbon-ratio: 9.5143; --ribbon-x: 200px; }
+.about-name { --ribbon: url("assets/decor/ribbon-1.webp"); --ribbon-ratio: 12.4; --ribbon-x: -500px; }
+.cv-section .section-heading { --ribbon: url("assets/decor/ribbon-2.webp"); --ribbon-ratio: 15.7214; --ribbon-x: 400px; }
+#contact .panel__tag { --ribbon: url("assets/decor/ribbon-4.webp"); --ribbon-ratio: 11; --ribbon-x: -700px; }
+
+.home-section--artworks > .section-heading::before,
+.home-section--artworks > .section-heading::after,
+.artwork-section__heading::before,
+.artwork-section__heading::after,
+.about-name::before,
+.about-name::after,
+.cv-section .section-heading::before,
+.cv-section .section-heading::after,
+#contact .panel__tag::before,
+#contact .panel__tag::after {
+  content: "";
+  position: absolute;
+  /* The silk is a little taller than the bar so its frayed edges spill over. */
+  top: 50%;
+  height: var(--ribbon-h);
+  left: 50%;
+  width: 100vw;
+  transform: translate(-50%, -50%);
+  z-index: -1;
+  pointer-events: none;
 }
 
 .home-section--artworks > .section-heading::before,
+.artwork-section__heading::before,
 .about-name::before,
 .cv-section .section-heading::before,
 #contact .panel__tag::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 50%;
-  width: 100vw;
-  transform: translateX(-50%);
-  z-index: -1;
-  background: var(--grain) 0 0 / var(--grain-size), var(--sticky-bg);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  pointer-events: none;
+  background: rgba(249, 245, 238, 0.35);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 30%, #000 70%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 30%, #000 70%, transparent);
+}
+
+.home-section--artworks > .section-heading::after,
+.artwork-section__heading::after,
+.about-name::after,
+.cv-section .section-heading::after,
+#contact .panel__tag::after {
+  background-image: var(--ribbon);
+  background-size: var(--ribbon-w) 100%;
+  background-repeat: repeat-x;
+  background-position: calc(50% + var(--ribbon-x, 0px)) 50%;
 }
 
 .artwork-section__heading {
   position: sticky;
-  top: calc(var(--nav-height, 0px) - 1px + var(--sticky-heading-h, 60px));
-  z-index: 5;
-}
-
-/* Hash links to #weaving / #photography land below the pinned "Artwork" bar. */
-.artwork-section {
-  scroll-margin-top: var(--sticky-heading-h, 60px);
+  top: calc(var(--nav-height, 0px) - 1px);
+  z-index: 6;
 }
 
 /* ---------- Cover name on phones ----------
@@ -2199,4 +2218,52 @@ body.lightbox-open {
     font-size: 1.55rem;
     transform: translateY(-50%);
   }
+}
+
+/* ---------- Hanging thread (background decoration) ----------
+   Positioned by script.js. Each section in the Artwork -> Contact run gets a
+   clipped .thread-slice behind its content; the slices line up into one
+   thread. The loop sits in the left golden-ratio third of the page. */
+.thread-host {
+  position: relative;
+  isolation: isolate;
+}
+
+.thread-slice {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.thread {
+  /* 1 - 1/phi = 38.2% of the page width */
+  --thread-w: clamp(240px, 38.2vw, 820px);
+  position: absolute;
+  /* Shifted left so the strand sits in the open margin; the loop's left
+     edge (at ~28% of the image) still stays inside the page. */
+  left: calc(var(--thread-w) * -0.24);
+  width: var(--thread-w);
+}
+
+.thread__head,
+.thread__tip {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.thread__tail {
+  /* background-image (the variant's tile) is set in script.js */
+  background-position: 0 0;
+  background-size: 100% auto;
+  background-repeat: repeat-y;
+}
+
+/* Inner blocks of the About section repeat the section's colour; drop it so
+   the thread shows through (the section itself still paints the colour). */
+.thread-host .about-body,
+.thread-host .about-image {
+  background-color: transparent;
 }

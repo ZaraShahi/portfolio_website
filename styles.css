@@ -1325,6 +1325,85 @@ body.lightbox-open {
   display: block;
 }
 
+.cv-download {
+  margin: 56px 0 40px;
+  text-align: center;
+}
+
+/* "Download full CV": a short strip of silk sewn onto the page with the
+   red thread from assets/DSCF0898.png (decor/stitch-cv.webp). The thread's
+   straight run (37.8% down the image) is laid along the strip's lower edge. */
+.cv-ribbon {
+  position: relative;
+  isolation: isolate;
+  display: inline-block;
+  padding: 22px 60px 24px;
+  color: var(--fg);
+  font-size: 0.85rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cv-ribbon__defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+/* The cloth: an 80%-opaque strip of ivory silk, a touch lighter than the page, with soft, frayed-looking
+   edges. script.js moves it through --cloth-* variables and the ripple filter. */
+.cv-ribbon__cloth {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.8;
+  filter: url(#cloth-ripple);
+  transform-origin: 50% 100%;
+  transform:
+    perspective(260px)
+    rotateX(var(--cloth-rx, 0deg))
+    skewX(var(--cloth-sk, 0deg))
+    scale(var(--cloth-sx, 1), var(--cloth-sy, 1));
+  will-change: transform;
+}
+
+.cv-ribbon__cloth::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    url("assets/decor/ribbon-1.webp") 30% 50% / auto 100% repeat-x,
+    linear-gradient(180deg, #fffdf9, #fbf7f0 55%, #fdfaf5);
+  -webkit-mask-image:
+    linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent),
+    linear-gradient(180deg, transparent, #000 14%, #000 86%, transparent);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent),
+    linear-gradient(180deg, transparent, #000 14%, #000 86%, transparent);
+  mask-composite: intersect;
+}
+
+.cv-ribbon__label {
+  position: relative;
+  display: inline-block;
+  transform: translateY(var(--cloth-ty, 0px));
+}
+
+.cv-ribbon:focus-visible {
+  outline: none;
+}
+
+.cv-ribbon:focus-visible .cv-ribbon__label {
+  text-decoration: underline;
+  text-decoration-color: rgba(64, 52, 42, 0.45);
+  text-underline-offset: 4px;
+}
+
 .muted {
   color: #7a7066;
 }

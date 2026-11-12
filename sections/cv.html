@@ -254,5 +254,15 @@
         </div>
       </div>
     </div>
+    <p class="cv-download">
+      <a class="cv-ribbon" href="assets/Zara_s_Res.pdf" download="Zara-Shahi-CV.pdf"><span class="cv-ribbon__cloth" aria-hidden="true"></span><span class="cv-ribbon__label">Download full CV (PDF)</span></a>
+      <!-- ripple for the cloth; its strength and drift are driven from script.js -->
+      <svg class="cv-ribbon__defs" width="0" height="0" aria-hidden="true" focusable="false">
+        <filter id="cloth-ripple" x="-8%" y="-40%" width="116%" height="180%" color-interpolation-filters="sRGB">
+          <feTurbulence type="fractalNoise" baseFrequency="0.011 0.045" numOctaves="2" seed="7" result="weave" />
+          <feDisplacementMap in="SourceGraphic" in2="weave" scale="2" xChannelSelector="R" yChannelSelector="G" />
+        </filter>
+      </svg>
+    </p>
   </div>
 </section>

@@ -802,6 +802,91 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
+  // "Download full CV" cloth. Two damped springs (energy for hover, press for
+  // the click) drive the fabric; while it has energy, several slow waves at
+  // unrelated speeds make it lift, sway and ripple without visibly repeating.
+  // The loop sleeps when the cloth has settled.
+  if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    const cloth = {
+      el: null, turb: null, disp: null, raf: 0, last: 0, t: Math.random() * 100,
+      e: 0, ev: 0, eTarget: 0,
+      p: 0, pv: 0, pTarget: 0
+    };
+
+    const bind = el => {
+      if (cloth.el === el) return true;
+      const filter = document.getElementById("cloth-ripple");
+      if (!filter) return false;
+      cloth.el = el;
+      cloth.turb = filter.querySelector("feTurbulence");
+      cloth.disp = filter.querySelector("feDisplacementMap");
+      return true;
+    };
+
+    const frame = now => {
+      const dt = Math.min(0.05, (now - cloth.last) / 1000 || 0.016);
+      cloth.last = now;
+      cloth.t += dt;
+      // springs: slightly under-damped so the cloth overshoots and settles
+      cloth.ev += (60 * (cloth.eTarget - cloth.e) - 9 * cloth.ev) * dt;
+      cloth.e += cloth.ev * dt;
+      cloth.pv += (320 * (cloth.pTarget - cloth.p) - 16 * cloth.pv) * dt;
+      cloth.p += cloth.pv * dt;
+
+      const { t, e, p } = cloth;
+      const wave = Math.sin(t * 1.7 + 0.3) * 0.5 + Math.sin(t * 2.9 + 1.1) * 0.25 + Math.sin(t * 0.73) * 0.35;
+      const sway = Math.sin(t * 1.3 + Math.sin(t * 0.47) * 1.6);
+      const breath = Math.sin(t * 2.2 + Math.sin(t * 0.61));
+      const s = cloth.el.style;
+      s.setProperty("--cloth-rx", `${(e * (5 + 4 * wave)).toFixed(3)}deg`);
+      s.setProperty("--cloth-sk", `${(e * 1.1 * sway).toFixed(3)}deg`);
+      s.setProperty("--cloth-sy", (1 + e * 0.03 * (1 + breath) - p * 0.08).toFixed(4));
+      s.setProperty("--cloth-sx", (1 - p * 0.018).toFixed(4));
+      s.setProperty("--cloth-ty", `${(p * 1.2 - e * 1).toFixed(3)}px`);
+      cloth.disp.setAttribute("scale", (2 + e * (6 + 2 * breath) - p * 1.5).toFixed(2));
+      cloth.turb.setAttribute(
+        "baseFrequency",
+        `${(0.011 + e * 0.002 * Math.sin(t * 0.6)).toFixed(5)} ${(0.045 + e * 0.008 * Math.sin(t * 0.9 + 1)).toFixed(5)}`
+      );
+
+      const settled = cloth.eTarget === 0 && cloth.pTarget === 0 &&
+        Math.abs(e) < 0.002 && Math.abs(cloth.ev) < 0.01 && Math.abs(p) < 0.002 && Math.abs(cloth.pv) < 0.01;
+      cloth.raf = settled ? 0 : requestAnimationFrame(frame);
+    };
+
+    const wake = () => {
+      if (cloth.raf) return;
+      cloth.last = performance.now();
+      cloth.raf = requestAnimationFrame(frame);
+    };
+
+    const set = (event, key, value) => {
+      const el = event.target.closest?.(".cv-ribbon");
+      if (!el || !bind(el)) return;
+      cloth[key] = value;
+      wake();
+    };
+
+    const leaving = event => !event.relatedTarget || !event.target.closest(".cv-ribbon")?.contains(event.relatedTarget);
+
+    document.addEventListener("pointerover", event => set(event, "eTarget", 1));
+    document.addEventListener("pointerout", event => {
+      if (!leaving(event)) return;
+      set(event, "eTarget", 0);
+      set(event, "pTarget", 0);
+    });
+    document.addEventListener("focusin", event => set(event, "eTarget", 1));
+    document.addEventListener("focusout", event => set(event, "eTarget", 0));
+    document.addEventListener("pointerdown", event => set(event, "pTarget", 1));
+    ["pointerup", "pointercancel"].forEach(type =>
+      document.addEventListener(type, () => {
+        if (!cloth.el || cloth.pTarget === 0) return;
+        cloth.pTarget = 0;
+        wake();
+      })
+    );
+  }
+
   const contactForm = document.querySelector(".contact-form");
   contactForm?.addEventListener("submit", event => {
     event.preventDefault();

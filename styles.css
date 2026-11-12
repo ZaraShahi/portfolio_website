@@ -2177,3 +2177,25 @@ body.lightbox-open {
 .artwork-section {
   scroll-margin-top: var(--sticky-heading-h, 60px);
 }
+
+/* ---------- Cover name on phones ----------
+   The cover is 1.5x as tall as it is wide, so on phones it is shorter than
+   the screen. Pin the name a third of the way down the photo instead of the
+   middle of the screen, and scale it down. */
+@media (max-width: 640px) {
+  .cover {
+    --cover-visible: min(100vh, 150vw);
+  }
+  .cover__track {
+    height: calc(30% + var(--cover-visible));
+  }
+  .cover__name-wrap {
+    height: var(--cover-visible);
+    align-items: flex-start;
+    padding-top: calc(var(--cover-visible) / 3);
+  }
+  .cover__name {
+    font-size: 1.55rem;
+    transform: translateY(-50%);
+  }
+}

@@ -131,7 +131,32 @@ document.addEventListener("DOMContentLoaded", async () => {
   };
 
   if (burger && drawer) {
-    burger.addEventListener("click", () => setDrawer(drawer.hidden));
+    // Mouse/trackpad devices: hover opens the menu, leaving it closes it.
+    // Touch devices (phones, tablets): tap toggles it.
+    const hoverQuery = window.matchMedia("(hover: hover) and (pointer: fine)");
+    let closeTimer = 0;
+    const openOnHover = () => {
+      if (!hoverQuery.matches || !nav.classList.contains("nav--collapsed")) return;
+      window.clearTimeout(closeTimer);
+      setDrawer(true);
+    };
+    const closeOnLeave = () => {
+      if (!hoverQuery.matches) return;
+      window.clearTimeout(closeTimer);
+      closeTimer = window.setTimeout(() => setDrawer(false), 220);
+    };
+    [burger, drawer].forEach(el => {
+      el.addEventListener("mouseenter", openOnHover);
+      el.addEventListener("mouseleave", closeOnLeave);
+    });
+
+    burger.addEventListener("click", () => {
+      // With hover the menu is already open, so a click shouldn't close it.
+      setDrawer(hoverQuery.matches ? true : drawer.hidden);
+    });
+    nav.addEventListener("focusout", event => {
+      if (!drawer.hidden && !nav.contains(event.relatedTarget)) setDrawer(false);
+    });
     drawer.addEventListener("click", event => {
       if (event.target.closest("a")) setDrawer(false);
     });
